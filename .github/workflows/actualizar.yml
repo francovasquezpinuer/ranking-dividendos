@@ -1,0 +1,43 @@
+name: Actualizar ranking
+
+on:
+  schedule:
+    # Días hábiles, cada 2 horas entre ~10:00 y ~18:00 de Chile (horario en UTC).
+    - cron: "17 13,15,17,19,21 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: actualizar
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Descargar datos y recalcular
+        run: python3 scripts/update.py
+      - name: Guardar cambios
+        run: |
+          git config user.name "ranking-bot"
+          git config user.email "ranking-bot@users.noreply.github.com"
+          git add site
+          git commit -m "Actualización $(TZ=America/Santiago date '+%Y-%m-%d %H:%M')" || echo "Sin cambios"
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

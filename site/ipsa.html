@@ -1,0 +1,459 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Ranking IPSA por crecimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: encabezado → método → filtros → tabla doble (precio | dividendos) → tarjetas con dos gráficos por acción */
+:root{
+  --bg:#f7f7f4; --surface:#fcfcfb; --fg:#161a1d; --fg2:#52514e; --muted:#8a8a84;
+  --rule:#e4e3dd; --grid:#ecebe6;
+  --price:#2a78d6; --fit:#eb6834; --div:#1baf7a; --divfit:#4a3aa7;
+  --up:#006300; --down:#b42f2f;
+  --display:"Newsreader", Georgia, serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121312; --surface:#1a1a19; --fg:#f2f2ee; --fg2:#c3c2b7; --muted:#8f8e86;
+    --rule:#2d2d2a; --grid:#262624; --price:#3987e5; --fit:#d95926; --div:#199e70; --divfit:#9085e9; --up:#4cc24c; --down:#e66767; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121312; --surface:#1a1a19; --fg:#f2f2ee; --fg2:#c3c2b7; --muted:#8f8e86;
+  --rule:#2d2d2a; --grid:#262624; --price:#3987e5; --fit:#d95926; --div:#199e70; --divfit:#9085e9; --up:#4cc24c; --down:#e66767; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1300px;margin:0 auto;padding-inline:20px;padding-block:32px 56px;display:grid;gap:28px}
+header{display:grid;gap:8px;max-width:74ch}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,4vw,40px);line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+p{margin:0;color:var(--fg2)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.method{grid-template-columns:1fr}}
+.method div{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;font-size:14px;color:var(--fg2);min-width:0}
+.method b{color:var(--fg)}
+code{font-family:var(--mono);font-size:13px;color:var(--fg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--fg2);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible,th:focus-visible{outline:2px solid var(--price);outline-offset:2px}
+.chip .n{opacity:.7;margin-left:4px}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:1140px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+thead tr.grp th{font-family:var(--display);font-size:15px;font-weight:600;color:var(--fg);text-transform:none;letter-spacing:0;cursor:default;text-align:center;border-bottom:1px solid var(--rule)}
+th{font-size:11.5px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none}
+th[aria-sort="descending"]::after{content:" ↓"} th[aria-sort="ascending"]::after{content:" ↑"}
+th:first-child,td:first-child{text-align:left}
+.sep{border-left:1px solid var(--rule)}
+tbody tr:last-child td{border-bottom:none}
+td.tk{font-weight:600} td.tk small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+td.eq{font-family:var(--mono);font-size:12.5px;color:var(--fg2)}
+.pos{color:var(--up)} .neg{color:var(--down)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--rule);color:var(--fg2)}
+.tag.both{border-color:var(--up);color:var(--up)}
+.tag.none{border-color:var(--down);color:var(--down)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--fg2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block}
+.sw.dot{width:8px;height:8px;border-radius:50%;background:var(--price)}
+.sw.l1{width:18px;height:2px;background:var(--fit)}
+.sw.bar{width:10px;height:10px;border-radius:2px;background:var(--div)}
+.sw.l2{width:18px;height:2px;background:var(--divfit)}
+.sw.avg{width:18px;height:0;border-top:1px dashed var(--fg2)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:14px 16px 10px;display:grid;gap:8px;min-width:0;position:relative}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card-h h3{margin:0;font-size:16px;font-weight:600}
+.card-h h3 small{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+.scorebox{display:grid;gap:6px;border-top:1px solid var(--rule);padding-top:10px}
+.scorebox .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted)}
+.scorebox .hd b{font-size:15px;color:var(--fg)}
+.srow{display:grid;grid-template-columns:136px minmax(0,1fr) 64px;gap:8px;align-items:center;font-size:12px;color:var(--fg2);font-variant-numeric:tabular-nums}
+.srow .trk{height:8px;border-radius:4px;background:var(--grid);overflow:hidden}
+.srow .trk i{display:block;height:100%;border-radius:4px;background:var(--price)}
+.srow span:last-child{text-align:right}
+.rk{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:13px;background:var(--fg);color:var(--bg);font-size:12.5px;font-weight:600;margin-right:8px;vertical-align:1px;padding-inline:6px}
+.pair{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+@media (max-width:480px){.pair{grid-template-columns:1fr}}
+.pane{display:grid;gap:2px;min-width:0}
+.pane .lbl{font-size:12px;color:var(--muted)}
+.pane .eqs{font-family:var(--mono);font-size:11.5px;color:var(--fg2)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--body);font-size:11px;fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:6px;white-space:nowrap;font-variant-numeric:tabular-nums;transform:translate(-50%,-100%);line-height:1.4;z-index:2}
+.notes{display:grid;gap:10px;max-width:80ch;font-size:14px}
+.crit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.crit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.crit{grid-template-columns:1fr}}
+.crit div{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;min-width:0}
+.crit b{font-size:14px} .crit span{font-family:var(--mono);font-size:13px;color:var(--fg2)} .crit small{grid-column:1/-1;color:var(--fg2);font-size:12.5px}
+#rank{min-width:980px}
+#rank th{text-align:right;line-height:1.3} #rank th:nth-child(2),#rank td:nth-child(2){text-align:left}
+.mx{font-family:var(--mono);text-transform:none;letter-spacing:0;font-size:11px}
+.sc{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.sc i{display:block;width:44px;height:6px;border-radius:3px;background:var(--grid);overflow:hidden}
+.sc i b{display:block;height:100%;background:var(--price);border-radius:3px}
+td.total{font-weight:600;font-size:16px}
+.medal{display:inline-block;min-width:22px;text-align:center;font-weight:600}
+footer{font-size:12.5px;color:var(--muted);max-width:90ch}
+.ip{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:999px;border:1px solid var(--up);color:var(--up);vertical-align:2px;margin-left:4px}
+td.why{white-space:normal;text-align:left;min-width:240px;max-width:360px;font-size:12.5px;color:var(--fg2);line-height:1.4}
+th.why-h{text-align:left!important;cursor:default}
+#rank{min-width:1220px}
+#rank .sc i{display:none}
+#rank td,#rank th{padding-inline:8px}
+.whyc{font-size:12.5px;color:var(--fg2);margin:0;line-height:1.45}
+.card.dim{opacity:.85}
+[hidden]{display:none!important}
+.liqbox{display:grid;gap:2px}
+.liqbox .lbl{font-size:12px;color:var(--muted)} .liqbox b{color:var(--fg);font-weight:600}
+.liqsvg text{font-size:10.5px}
+.scatbox{position:relative;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px;overflow-x:auto}
+.scatbox svg{min-width:640px}
+.tags{display:inline-flex;gap:6px;flex-wrap:wrap}
+.tag.lq-alta{border-color:var(--up);color:var(--up)}
+.tag.lq-baja,.tag.lq-muybaja{border-color:var(--down);color:var(--down)}
+.sel{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--fg2)}
+.sel select{font:inherit;font-size:13px;padding:5px 8px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--fg)}
+.jump{font-size:13px;color:var(--price);text-decoration:none;border-bottom:1px solid currentColor}
+.sel select:focus-visible{outline:2px solid var(--price);outline-offset:2px}
+</style>
+
+<div class="wrap"><!--NAV--><nav class="topnav"><a href="index.html" class="">Bolsa de Santiago</a><a href="ipsa.html" class="on">Solo IPSA</a></nav><!--/NAV-->
+  <header>
+    <div class="eyebrow">IPSA · 31 acciones · nov 2021 – oct 2026</div>
+    <h1>Ranking del IPSA</h1>
+    <p>Las 31 acciones del IPSA, evaluadas con la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). <b>Crecimiento</b> premia precio y dividendo que crecen, con un % de pago alto y constante (la tendencia del precio pesa más, 16 pts; los otros siete criterios —incluidos rendimiento + crecimiento y deuda— 11 pts cada uno; la liquidez 7 pts); <b>Ingreso</b> premia el rendimiento actual.</p>
+  </header><!--INFORME--><style>
+#informe{display:grid;gap:14px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:18px 20px}
+#informe h2{margin:0;font-family:var(--display);font-weight:600;font-size:1.5rem}
+#informe .sub{color:var(--fg2);font-size:13px;margin:0}
+#informe .cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+#informe .cand{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg)}
+#informe .cand b{font-size:15px}
+#informe .cand .pts{display:block;font-family:var(--mono);font-size:12.5px;color:var(--fg2);margin-top:2px}
+#informe .cand p{margin:6px 0 0;font-size:12.5px;color:var(--fg2);line-height:1.45}
+#informe table{border-collapse:collapse;width:100%;font-size:13px}
+#informe th,#informe td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+#informe td.n{font-family:var(--mono);text-align:right}
+#informe .tw{overflow-x:auto}
+#informe .up{color:var(--up)} #informe .down{color:var(--down)}
+#informe .warn{color:var(--fit)}
+#informe small{color:var(--muted)}
+.topnav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.topnav a{font-size:13px;padding:5px 12px;border:1px solid var(--rule);border-radius:999px;color:var(--fg);text-decoration:none}
+.topnav a.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+</style><section id="informe"><div><h2>Informe del día — IPSA</h2><p class="sub">Actualizado el 1 de octubre de 2026 a las 12:30 (hora de Chile) · se actualiza solo varias veces al día hábil</p></div><div><b>Candidatas para comprar hoy según tus criterios</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años.</p></div><div class="cands"><div class="cand"><b>CHILE</b><span class="pts">89,2 pts · #1</span><p>Precio +2% vs. su tendencia<br>Rinde 5,3% en 12 meses<br>Payout 83% · liquidez alta</p></div><div class="cand"><b>ANDINA-B</b><span class="pts">82,9 pts · #3</span><p>Precio −5% vs. su tendencia<br>Rinde 4,9% en 12 meses<br>Payout 31% · liquidez alta</p></div><div class="cand"><b>ENELCHILE</b><span class="pts">73,9 pts · #6</span><p>Precio −11% vs. su tendencia<br>Rinde 4,4% en 12 meses<br>Payout 48% · liquidez alta</p></div><div class="cand"><b>LTM</b><span class="pts">72,2 pts · #7</span><p>Precio −24% vs. su tendencia<br>Rinde 3,2% en 12 meses<br>Payout 28% · liquidez alta</p></div><div class="cand"><b>SALFACORP</b><span class="pts">70,7 pts · #8</span><p>Precio −4% vs. su tendencia<br>Rinde 2,1% en 12 meses<br>Payout 35% · liquidez media</p></div></div><p style="margin:0"><b>Buenas, pero caras hoy (mejor esperar una baja):</b> ITAUCL (+16%)</p><div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. tendencia</th><th>Liquidez</th></tr></thead><tbody><tr><td class="n">1</td><td>CHILE <small>IPSA</small></td><td class="n">89,2</td><td class="">=</td><td>+2% <small>cerca de su tendencia</small></td><td>alta</td></tr><tr><td class="n">2</td><td>ITAUCL <small>IPSA</small></td><td class="n">86,7</td><td class="">=</td><td>+16% <small>sobre su tendencia</small></td><td>alta</td></tr><tr><td class="n">3</td><td>ANDINA-B <small>IPSA</small></td><td class="n">82,9</td><td class="">=</td><td>−5% <small>cerca de su tendencia</small></td><td>alta</td></tr><tr><td class="n">4</td><td>BCI <small>IPSA</small></td><td class="n">76,5</td><td class="">=</td><td>+10% <small>cerca de su tendencia</small></td><td>alta</td></tr><tr><td class="n">5</td><td>BSANTANDER <small>IPSA</small></td><td class="n">74,4</td><td class="">=</td><td>+6% <small>cerca de su tendencia</small></td><td>alta</td></tr><tr><td class="n">6</td><td>ENELCHILE <small>IPSA</small></td><td class="n">73,9</td><td class="">=</td><td>−11% <small>bajo su tendencia</small></td><td>alta</td></tr><tr><td class="n">7</td><td>LTM <small>IPSA</small></td><td class="n">72,2</td><td class="">=</td><td>−24% <small>bajo su tendencia</small></td><td>alta</td></tr><tr><td class="n">8</td><td>SALFACORP <small>IPSA</small></td><td class="n">70,7</td><td class="">=</td><td>−4% <small>cerca de su tendencia</small></td><td>media</td></tr><tr><td class="n">9</td><td>AGUAS-A <small>IPSA</small></td><td class="n">69,0</td><td class="">=</td><td>−21% <small>bajo su tendencia</small></td><td>alta</td></tr><tr><td class="n">10</td><td>ILC <small>IPSA</small></td><td class="n">68,7</td><td class="">=</td><td>+6% <small>cerca de su tendencia</small></td><td>media</td></tr></tbody></table></div><small>Sin datos nuevos en esta actualización (se mantuvo el dato anterior): VAPORES, SQM-B, COPEC, CCU, SQM-A, SONDA, CMPC, PAMPA, CAP, SOCOVESA, HITES, LAS CONDES, INVERCAP, MASISA, CAMPOS, SCOTIABKCL, ELECMETAL, HIPERMARC, FROWARD, EDELMAG, IANSA, EMBONOR-A, VOLCAN, CAROZZI, MARINSA, ESVAL-C, POTASIOS-A, DUNCANFOX, ISANPA, ESSBIO-C, NAVIERA, VSPT, BLUMAR, SIEMEL, MOLLER, CGE, VENTANAS, EDELPA, MINERA, CTC, COLO COLO, CIC, SANTA RITA, ENELDXCH, POLPAICO, AZUL AZUL, EMILIANA, AQUACHILE, INFODEMA, COPEVAL, FOSFOROS, CRISTALES, CINTAC, CRUZADOS, ENJOY.</small><small>“Precio vs. tendencia” compara el precio de hoy con la curva de crecimiento de los últimos 5 años. Es un análisis de datos pasados con tus criterios, no una recomendación de un asesor financiero.</small></section><!--/INFORME-->
+
+  <section style="display:grid;gap:12px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h2>Criterio del ranking</h2><div class="chips" id="modes"></div></div>
+    <div class="crit" id="crit"></div>
+  </section>
+
+  <div style="display:grid;gap:8px">
+    <div class="eyebrow">Mostrar</div>
+    <div class="chips" id="chips"></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><label class="sel"><span>Sector</span><select id="sector"></select></label><a class="jump" href="#fichas">Ir a los gráficos ↓</a><a class="jump" href="#ranking">Ir al ranking ↓</a></div>
+  </div>
+
+  <section style="display:grid;gap:12px">
+    <h2>Puntaje vs. liquidez</h2>
+    <p style="max-width:80ch;font-size:14px">Cada punto es una acción del ranking: más a la derecha, más se transa en un día típico (escala logarítmica); más arriba, mejor puntaje con el criterio elegido. Lo ideal está arriba a la derecha.</p>
+    <div class="scatbox" id="scatbox"><div class="tip" hidden></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2 id="ranking">Ranking</h2>
+    <div class="tablebox">
+      <table id="rank">
+        <thead><tr id="rankhead">
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p style="font-size:13px">Pasa el cursor sobre un puntaje para ver el dato de origen. Haz clic en un encabezado para ordenar.</p>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h2 id="fichas">Gráficos por acción, en orden de ranking</h2>
+      <div class="legend"><span><i class="sw dot"></i>Cierre mensual</span><span><i class="sw l1"></i>Recta del precio</span><span><i class="sw bar"></i>Dividendo anual</span><span><i class="sw l2"></i>Recta del dividendo</span><span><i class="sw avg"></i>Promedio</span></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+
+  <footer>Fuente: precios mensuales, dividendos y % de pago de Yahoo Finance (tickers .SN), consultados el 1 de octubre de 2026 a las 12:30. Ajustes manuales: dividendo 2024 de Banco de Chile ($8,08, faltaba en Yahoo); dividendos de los últimos 12 meses de Soquimich Comercial ($25,23, Yahoo mostraba un valor erróneo); dividendos de Pampa en 0 (Yahoo los informa en otra moneda). Los % de pago mayores a 200% se tratan como dato no confiable. LATAM se calcula desde noviembre 2022 por su reestructuración. Esto es un análisis de datos pasados y no una recomendación de inversión.</footer>
+</div>
+
+<script>
+const ROWS = [{"tk":"CHILE","sec":"Banca","name":"Banco de Chile","ipsa":true,"pm":2.0263,"pb":58.8809,"pr":0.9344,"g":0.2199,"dm":1.8082,"db":1.3833,"dr":0.9325,"dav":6.808,"rcv":0.1454,"yt":0.0528,"po":0.8344,"last":189.27,"s3":28.9882,"s4":24.1801,"s7":11.3643,"s1":11.319,"s8":7,"s6":0,"v":[80,66.56,80.12,84.78,84.24,85.15,85.74,83.5,85.5,85.03,85.17,86.29,84.25,88,87,86,77.2,85.95,81.9,83.69,93.4,93,90.49,91.95,97.98,103.49,104.25,112,109,106.5,109,105.01,112.21,115.6,114.7,112,111.15,113.05,121.54,124.3,125.5,139,139.2,140.9,133.98,138.54,145.99,163.2,175.1,174,198.99,180,168.12,168.68,167.66,180.5,193.71,192.5,197.9,189.27],"d":[2.1805,5.3439,8.582,8.08,9.8536],"t":9.9976,"s":0,"flat":0.0,"liq":true,"why":"A favor: precio muy firme al alza (r 0,93), dividendo que sube de forma firme (r 0,93), pagos muy parejos."},{"tk":"ITAUCL","sec":"Banca","name":"Banco Itaú Chile","ipsa":true,"pm":239.9954,"pb":4867.4032,"pr":0.8768,"g":0.2511,"dm":115.142,"db":54.796,"dr":0.7689,"dav":400.222,"rcv":0.3383,"yt":0.053,"po":0.6387,"last":22421.0,"s3":26.5335,"s4":23.4595,"s7":6.542,"s1":11.3475,"s8":10,"s6":0,"v":[7672.5,7416,8154,7042.5,7875,7830,9315,7726.5,8761.5,9000,8248.5,8280,7987.5,8415,8149.5,8005.5,8815.5,8190,8430.1,8600,9800,9370,8571.8,7859.8,8600,8580,8719.9,9500,10112,10100,10390,10350,10511,10700,10448,10400,10375,10165,11020,11400,12899,13799,12799,12900,12852,13801,14800,17124,17900,19950,23800,20900,19250,18400,18000,18798,20678,20678,24200,22421],"d":[0,385.24,601.48,492.12,522.27],"t":1187.3,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio al alza (r 0,88), dividendo al alza (r 0,77)."},{"tk":"ANDINA-B","sec":"Consumo","name":"Embotelladora Andina S.A.","ipsa":true,"pm":58.4536,"pb":1158.2125,"pr":0.9646,"g":0.2796,"dm":20.68,"db":88.0,"dr":0.8457,"dav":150.04,"rcv":0.123,"yt":0.0486,"po":0.3057,"last":4707.0,"s3":27.6862,"s4":24.5572,"s7":11.9256,"s1":10.4161,"s8":7,"s6":0,"v":[1700,1850,1720,1739,1747,1550,1649.5,1637.6,1635,1836.3,1676.1,1650,1711.5,2079.9,1975,2035,2050,2022.2,2070,2101,2305.2,2150,1999,1820,2100,2190,2369,2438,2482.1,2715,2830.9,2664,3010,2901,3030,2870,2880,3025,3280,3200,3550,4050,4023.5,3801,3732,3830,3788,4242,4225,4220,4589.9,4205,3913.8,4194.4,4500,4590,4699.9,4699.9,4699.9,4707],"d":[117.7,127.6,150.7,138.6,215.6],"t":228.8,"s":0,"flat":0.0339,"liq":true,"why":"A favor: precio muy firme al alza (r 0,96), dividendo que sube de forma firme (r 0,85), pagos muy parejos."},{"tk":"BCI","sec":"Banca","name":"Banco de Crédito e Inversiones","ipsa":true,"pm":798.5472,"pb":9422.859,"pr":0.8914,"g":0.3117,"dm":148.34,"db":465.922,"dr":0.8132,"dav":910.942,"rcv":0.1648,"yt":0.0234,"po":0.296,"last":64005.0,"s3":27.1985,"s4":23.6425,"s7":10.8801,"s1":5.0219,"s8":4,"s6":0,"v":[20726,18424,21468,21149,20981,19534,22651,19884,20125,21165,19722,21077,19333,19554,19241,20764,18681,19522,19089,19640,22800,22191,22756,21400,23422,23850,24620,26800,28010,28001,26050,26480,27542,27990,27990,28200,27770,27600,30005,32400,35090,37500,36500,39340,38600,39101,42500,48450,53898,58400,64993,59792,60000,60800,60051,60569,62502,62502,65600,64005],"d":[494.49,747.62,1202.6,1000,1110],"t":1500,"s":0,"flat":0.0339,"liq":true,"why":"A favor: precio al alza (r 0,89), dividendo que sube de forma firme (r 0,81), pagos muy parejos."},{"tk":"BSANTANDER","sec":"Banca","name":"Banco Santander-Chile","ipsa":true,"pm":0.7808,"pb":27.3887,"pr":0.9098,"g":0.1946,"dm":0.2453,"db":1.608,"dr":0.6308,"dav":2.3438,"rcv":0.1821,"yt":0.0423,"po":0.5607,"last":79.28,"s3":24.4619,"s4":23.872,"s7":10.4485,"s1":9.0636,"s8":10,"s6":0,"v":[37,34.25,39.7,39.2,44.31,41.03,41.2,37.05,35.69,36,33.82,33.8,34.62,33.95,33.47,35.09,35.25,38.6,35.2,37.94,44.79,40.8,41.15,39.02,42.8,43,43,46.98,48.8,43.5,43.45,44.2,46.9,47,46.75,47.74,46.4,47.3,50.7,51.99,54.01,57.25,56.37,58.71,56.18,58.1,63.68,68.17,69.65,71.1,76.89,75,76.7,71.95,70,75.5,80.99,80.51,81.82,79.28],"d":[1.6475,2.4674,2.5747,1.8439,3.1857],"t":3.3533,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,91), dividendo al alza (r 0,63), pagos muy parejos."},{"tk":"ENELCHILE","sec":"Utilities","name":"Enel Chile S.A.","ipsa":true,"pm":0.9724,"pb":25.4367,"pr":0.9523,"g":0.271,"dm":0.6545,"db":0.5556,"dr":0.5023,"dav":2.519,"rcv":0.6324,"yt":0.0436,"po":0.4846,"last":81.61,"s3":22.5352,"s4":24.404,"s7":0.0,"s1":9.3523,"s8":10,"s6":0,"v":[36,29.8,31.37,26.2,23.5,22.49,21.11,20.75,25.8,29.42,27.99,33.2,40.5,38.99,37.59,37.29,43.36,46,44.5,52.1,57.89,57.45,54,53,55.01,56.99,55.89,58.03,58.9,57,52.61,53.1,53.8,49.51,49.5,51.02,53.6,57.5,58.3,63.45,62.44,67,68.6,68.98,62.3,67.8,74.4,72,72.38,73.99,74.15,73.05,71.49,80.8,77.3,81,81.01,81.01,81.53,81.61],"d":[3.0774,0.36934,0.32409,4.5792,4.2448],"t":3.5618,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,95), dividendo al alza (r 0,50). En contra: dividendo con saltos grandes entre años."},{"tk":"LTM","sec":"Industrial","name":"LATAM Airlines Group S.A.","ipsa":true,"pm":0.4859,"pb":-2.1377,"pr":0.9643,"g":0.5338,"dm":0.2327,"db":-0.4653,"dr":0.7071,"dav":0.2327,"rcv":1.4142,"yt":0.0317,"po":0.2817,"last":23.52,"s3":25.6066,"s4":24.5535,"s7":0.0,"s1":6.7852,"s8":4,"s6":0,"v":[15.062,18.201,16.683,15.032,13.761,12.584,18.575,14.123,12.3,12.07,50.49,12.99,5.311,5.652,5.675,6.271,5.949,5.489,6.7,7.58,8.03,8.05,8.06,7,8.5,9.55,11.49,12.15,12.21,12.99,12.35,12.84,11.66,11.81,11.57,12.86,13.5,13.73,14.86,15.4,14.88,14.95,18,18.86,21.27,24.34,21.85,21.48,22.31,24.39,28.35,24.56,22.81,21.4,24.1,26.86,24.69,24.69,24.78,23.52],"d":[0,0,0,0,1.1633],"t":0.74474,"s":12,"flat":0.0213,"liq":true,"why":"A favor: precio muy firme al alza (r 0,96), dividendo al alza (r 0,71). En contra: dividendo con saltos grandes entre años."},{"tk":"SALFACORP","sec":"Construcción e inmobiliaria","name":"SalfaCorp S.A.","ipsa":true,"pm":19.5785,"pb":56.53,"pr":0.9168,"g":0.4496,"dm":3.1693,"db":9.6678,"dr":0.8495,"dav":19.1759,"rcv":0.1452,"yt":0.0214,"po":0.3512,"last":1288.6,"s3":27.7422,"s4":23.9596,"s7":11.3706,"s1":4.593,"s8":7,"s6":0,"v":[295.54,320.64,331.65,279.58,265.47,258.58,277.87,232.96,247.37,317.48,291.4,264.69,253.53,260.74,296.75,343.37,333.53,327.93,400.76,400,462,436.1,404.29,357.56,412.24,446.61,465,516.01,531.4,545.09,545.23,550,556.61,534.58,539.09,574,555,559,595,640,669.8,676.45,728,745.06,717,881,930,1035,1135,1200,1439,1327.9,1220,1391.5,1374,1249.8,1249,1249,1315,1288.6],"d":[9.1173,20.432,19.45,23.4,23.48],"t":27.62,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,92), dividendo que sube de forma firme (r 0,85), pagos muy parejos."},{"tk":"AGUAS-A","sec":"Utilities","name":"Aguas Andinas S.A.","ipsa":true,"pm":3.5643,"pb":169.5998,"pr":0.9263,"g":0.1833,"dm":0.9521,"db":13.1923,"dr":0.4658,"dav":16.0486,"rcv":0.1594,"yt":0.0541,"po":0.7407,"last":316.78,"s3":21.9872,"s4":24.0788,"s7":11.0155,"s1":11.5916,"s8":10,"s6":0,"v":[177,155,192,168.5,167.99,150,172.74,147.65,181.75,196.34,187.94,199,206,195.9,190.78,198,225.3,244,264,278,294,290.99,267.97,261,267.01,284.6,282,284,286,274,272,257,279.9,277,278,274.64,294.5,299.5,313.5,316,342.22,349.9,349,340,320.1,342,365,359,366.93,369,385,369,354,340.49,335,330.11,332.4,332.4,335,316.78],"d":[17.189,12.747,14.749,14.47,21.088],"t":17.136,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,93), dividendo al alza (r 0,47), pagos muy parejos."},{"tk":"ILC","sec":"Construcción e inmobiliaria","name":"Inversiones La Construcción S.A.","ipsa":true,"pm":351.2906,"pb":-901.4469,"pr":0.9166,"g":0.5924,"dm":64.0,"db":284.0,"dr":0.7003,"dav":476.0,"rcv":0.1938,"yt":0.0345,"po":0.2473,"last":24908.0,"s3":25.5045,"s4":23.9573,"s7":10.1544,"s1":7.3987,"s8":4,"s6":0,"v":[2500,2994.1,3560,3212.7,3390,3460,3110,2785.9,2705.1,3513.4,3045,2951.1,2821,3289,3600,3610,4404.2,5100,5364,5810,5900,5427.8,5697,5203.7,5609.5,6329.6,7249.9,8330,8050.2,8400.9,8500,8034.9,7377.8,7500,7499.8,7537.8,7347.1,7613.6,8738.1,9640.4,10698,11012,11499,10726,10684,12708,12999,15000,16170,18201,21799,20250,19400,20980,23300,22250,21450,21450,25000,24908],"d":[330,350,650,450,600],"t":860,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,92), dividendo al alza (r 0,70), pagos muy parejos."},{"tk":"IAM","sec":"Utilities","name":"Inversiones Aguas Metropolitanas S.A.","ipsa":true,"pm":11.4946,"pb":365.1357,"pr":0.9554,"g":0.2357,"dm":2.57,"db":40.1372,"dr":0.4146,"dav":47.8472,"rcv":0.1667,"yt":0.0544,"po":0.7218,"last":914.57,"s3":21.2185,"s4":24.443,"s7":10.8314,"s1":11.6572,"s8":10,"s6":0,"v":[445,385,460,400.47,398,335.01,404,319.5,395,452.99,409.72,450,465,475.33,469.41,470,540,560.15,633.27,655,688.99,692,667.83,641.27,671,734.24,729.97,725,735.34,742,739,699.49,688.05,731,703,719.99,735.49,750,765,823,840,860,875,856,825.18,855,919,949.99,1004.2,1024.2,1109.5,1041.3,1015.6,980,955,925.1,921.89,921.89,955.57,914.57],"d":[52.319,38.026,43.278,42.862,62.751],"t":49.753,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,96), dividendo al alza (r 0,41), pagos muy parejos."},{"tk":"PARAUCO","sec":"Construcción e inmobiliaria","name":"Parque Arauco S.A.","ipsa":true,"pm":54.912,"pb":217.0272,"pr":0.9021,"g":0.4208,"dm":10.8501,"db":-5.9181,"dr":0.9364,"dav":26.6322,"rcv":0.216,"yt":0.0125,"po":0.1967,"last":3554.4,"s3":29.0457,"s4":23.7767,"s7":9.6009,"s1":2.676,"s8":0,"s6":0,"v":[800,939.9,925,797.19,824,716.17,799.31,715.5,761,947.55,840,799.38,943,1081.9,1025,1015,1130,1144,1140,1289,1345,1265,1277.7,1223,1252.9,1420,1486,1541,1445.3,1445,1493.4,1421,1500,1506.7,1584,1578.9,1572,1588.9,1684.8,1730.2,1890,2180,1960,1965,1984,2230,2434,2630,3000,2990,3715,4145,3780,4020,3900,3864.9,4039.9,4039.9,3900,3554.4],"d":[0,19.728,34.523,29.591,49.319],"t":44.387,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,90), dividendo que sube de forma firme (r 0,94). En contra: rinde poco (1,2%)."},{"tk":"MALLPLAZA","sec":"Retail","name":"Plaza S.A.","ipsa":true,"pm":56.3442,"pb":187.6562,"pr":0.8995,"g":0.4274,"dm":12.9441,"db":-11.0784,"dr":0.7489,"dav":27.754,"rcv":0.5837,"yt":0.0199,"po":0.1184,"last":3520.0,"s3":26.2329,"s4":23.7434,"s7":0.4073,"s1":4.2614,"s8":0,"s6":0,"v":[880,939.01,933.94,860,815,791.41,800.06,711,769.01,1004.5,781,808.45,1000,1058,1078.8,1030,1044.1,1038.4,1025,1238.5,1350,1313,1220.8,1082.3,1209,1244.7,1284.1,1430,1345.6,1396,1519,1369.9,1460,1510.1,1542,1570,1645,1630.1,1759.9,1900,1964.9,2225,2036.3,2078.8,2054.8,2270.1,2600,2655,3200,3186.1,3800,4118,3942,4469.9,3880,3800,3950,3950,3900,3520],"d":[4.4389,22.771,0,62.03,49.53],"t":70,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio al alza (r 0,90), dividendo al alza (r 0,75). En contra: dividendo con saltos grandes entre años, rinde poco (2,0%)."},{"tk":"CENCOMALLS","sec":"Construcción e inmobiliaria","name":"Cencosud Shopping S.A.","ipsa":true,"pm":28.1474,"pb":778.5252,"pr":0.9441,"g":0.2416,"dm":3.64,"db":88.54,"dr":0.2849,"dav":99.46,"rcv":0.1742,"yt":0.0346,"po":0.3614,"last":2165.0,"s3":19.2729,"s4":24.3016,"s7":10.6459,"s1":7.4233,"s8":7,"s6":0,"v":[877.2,1011,945,858,923.19,869.93,877,835.2,972.13,1270,1010,1031.8,1139,1338.8,1199.7,1180,1280,1285.6,1265,1444,1530,1430,1350,1299,1390.1,1410,1551,1580,1500,1488,1499.6,1425,1471,1548.5,1560.5,1587,1544.9,1556,1640,1785,1866,2000,1935,1901.2,1900,1959.9,2150.3,2235,2410,2330,2799.9,2530.1,2413.9,2728,2428,2362,2210,2210,2240,2165],"d":[72.3,120,95,119,91],"t":75,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,94), pagos muy parejos. En contra: dividendo sin tendencia (r 0,28)."},{"tk":"FALABELLA","sec":"Retail","name":"Falabella S.A.","ipsa":true,"pm":82.9724,"pb":1055.3149,"pr":0.8789,"g":0.3159,"dm":7.3,"db":25.5,"dr":0.2223,"dav":47.4,"rcv":0.9553,"yt":0.0205,"po":0.185,"last":6351.0,"s3":18.3343,"s4":23.486,"s7":0.0,"s1":4.3863,"s8":0,"s6":0,"v":[2560,2779,2850,2630,2514.9,2395,2412,2150,2010,2112,1930,1844.8,1590,1650,1850,1822.1,1828,1731,1785,1925,2320,2100.1,1985.8,1822.5,2036,2200,2209.9,2450,2573,2570,2781,2901,3120,3230,3330,3451,3300,3515,3720,3760,3960,4299.6,4514.4,4950,4850,5503,5700,5915,6000,6284,6784,6480,5670,5450,5700,5756,5835,5835,6599,6351],"d":[35,87,0,0,115],"t":130,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio al alza (r 0,88). En contra: dividendo sin tendencia (r 0,22), dividendo con saltos grandes entre años."},{"tk":"QUINENCO","sec":"Consumo","name":"Quiñenco S.A.","ipsa":true,"pm":42.6285,"pb":1998.7038,"pr":0.9334,"g":0.1773,"dm":-8.596,"db":410.724,"dr":-0.0819,"dav":384.936,"rcv":0.3843,"yt":0.0863,"po":0.3025,"last":4742.6,"s3":13.7714,"s4":24.168,"s7":5.3933,"s1":15,"s8":7,"s6":0,"v":[1606,1650,2080,2050,2390,2341.4,3000,2250,2450,2316.9,2100.2,2509,2695,2870,2770,2934,3075,3315,2900,2690,2920,2680.7,2630,2422.4,2410.1,2865,3160,3299.9,3450,3344.9,3300,3085,3282,3200,3129,3115,3149,3277,3510,3550,3699,3979,3614,3650,3749.9,3984.6,4250,4310,4610,4380,4525,4390,4315,4400,3900,3925,4279,4279,4620,4742.6],"d":[245.61,468.33,637.85,272.19,300.7],"t":409.18,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,93), rinde alto (8,6%). En contra: dividendo sin tendencia (r -0,08)."},{"tk":"ENELAM","sec":"Utilities","name":"Enel Américas S.A.","ipsa":true,"pm":-0.3052,"pb":102.8534,"pr":-0.5981,"g":-0.0385,"dm":0.6479,"db":1.177,"dr":0.3844,"dav":3.1208,"rcv":0.7051,"yt":0.0339,"po":0.2803,"last":81.25,"s3":20.7664,"s4":5.0239,"s7":0.0,"s1":7.2578,"s8":4,"s6":0,"v":[106.62,93,94.23,93.5,95,89.3,89.17,87.1,91.2,97.1,102,93.48,118,113.5,105.4,103.05,104.7,110,104.44,106.99,113.4,101.32,102,92,101.54,97.5,94.23,98.5,95.51,90,90.8,87.6,88.15,97.9,91.79,90.05,90.49,87.25,88.26,87.15,92.4,92.98,88.22,90.75,97,100.5,97,89,90.1,85.66,82.51,78.5,79.3,84,78,82.6,84.04,84.04,90,81.25],"d":[4.0589,2.0383,0,2.3779,7.1287],"t":2.7519,"s":0,"flat":0.0169,"liq":true,"why":"En contra: precio a la baja (r -0,60), dividendo sin tendencia (r 0,38), dividendo con saltos grandes entre años."},{"tk":"COLBUN","sec":"Utilities","name":"Colbún S.A.","ipsa":true,"pm":1.4115,"pb":75.8864,"pr":0.8595,"g":0.1815,"dm":-12.981,"db":60.7534,"dr":-0.7523,"dav":21.8105,"rcv":0.7372,"yt":0.035,"po":0.7489,"last":147.83,"s3":3.7159,"s4":23.2444,"s7":0.0,"s1":7.5096,"s8":10,"s6":0,"v":[54.18,69.3,66.2,58.2,64.53,60.93,61.5,63.51,76.54,87.4,85,92.71,79,87.3,92.65,95,105,113.01,118.01,127,132.45,133.76,121,129.94,138,139.8,131.96,132.75,126.95,123.29,120,121.79,122.5,122,121.8,119,122.98,122.9,132,137.99,133.5,147.99,148,149.89,143.98,145.48,154.99,141.7,145,144.02,144.8,145.35,130,134,133.6,133,135.29,135.29,148,147.83],"d":[69.949,8.7596,17.362,7.1159,5.866],"t":5.1807,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio al alza (r 0,86). En contra: dividendo a la baja (r -0,75), dividendo con saltos grandes entre años."},{"tk":"ECL","sec":"Utilities","name":"Engie Energia Chile S.A.","ipsa":true,"pm":23.8082,"pb":252.96,"pr":0.9455,"g":0.3595,"dm":-7.1276,"db":48.8484,"dr":-0.2841,"dav":27.4656,"rcv":1.2384,"yt":0.0338,"po":0.2748,"last":1845.7,"s3":10.738,"s4":24.3183,"s7":0.0,"s1":7.2523,"s8":4,"s6":0,"v":[507,502,650,485,479,387.86,395.45,357,408,495,455,554.01,453.55,490,507.01,505,584,624.98,695,768.21,859,840,816.99,798.14,827.35,920,879.49,825,779.76,788,850,841.5,856,874,870.51,895,880,907,979.99,1015,977,1121,1250,1300,1189,1212.1,1390,1356.5,1349.9,1347,1549.6,1495,1490,1720.5,1850,1800,1807,1807,1855,1845.7],"d":[86.483,0,0,0,50.845],"t":62.466,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio muy firme al alza (r 0,95). En contra: dividendo a la baja (r -0,28), dividendo con saltos grandes entre años."},{"tk":"CENCOSUD","sec":"Retail","name":"Cencosud S.A.","ipsa":true,"pm":26.3832,"pb":1182.6221,"pr":0.7632,"g":0.1775,"dm":-57.2,"db":274.4,"dr":-0.9524,"dav":102.8,"rcv":0.2518,"yt":0.0132,"po":0.4417,"last":1892.9,"s3":0.7136,"s4":22.0402,"s7":8.7048,"s1":2.8301,"s8":10,"s6":0,"v":[1320,1425,1474.9,1470,1550,1365,1320.4,1168,1231,1253,1225,1270,1324,1395,1430,1565,1536,1645,1530,1553.9,1803,1825,1685,1450,1620,1655,1618.1,1735,1700,1645.1,1723.9,1775,1741,1850,1815,1994,2050,2200,2500,2530,2900,3240,3256.3,3170,2930,3063.9,2735,2923,2918,2895,2925,2727.4,2528.8,2275,2099,2130,1995,1995,2090,1892.9],"d":[248,127,103,21,15],"t":25,"s":0,"flat":0.0169,"liq":true,"why":"A favor: precio al alza (r 0,76). En contra: dividendo a la baja (r -0,95), rinde poco (1,3%)."},{"tk":"SMU","sec":"Consumo","name":"SMU S.A.","ipsa":true,"pm":0.9595,"pb":111.3281,"pr":0.5636,"g":0.1007,"dm":-1.0167,"db":14.1554,"dr":-0.483,"dav":11.1052,"rcv":0.2348,"yt":0.0517,"po":0.7875,"last":115.07,"s3":7.7556,"s4":19.5451,"s7":9.1311,"s1":11.0839,"s8":7,"s6":0,"v":[100,86,94.2,80,90,79.45,102,87,92.12,97.71,93.46,96,110.21,116.16,123.5,136.1,145.71,141,137,141,158.5,158.5,156,155,161,161.8,150,163.04,169.95,178,180.31,165,156,145.25,146,148.67,157.85,159.9,177.9,181.99,176,185.5,181.9,167,153.9,165.25,160.52,153,150.99,153.89,163.79,154,131,136.64,145,132,127.9,127.9,117.5,115.07],"d":[9.946,16.877,10.864,9.0761,8.7627],"t":5.952,"s":0,"flat":0.0339,"liq":true,"why":"En contra: precio sin tendencia clara (r 0,56), dividendo a la baja (r -0,48)."},{"tk":"RIPLEY","sec":"Retail","name":"Ripley Corp S.A.","ipsa":true,"pm":6.2949,"pb":80.1378,"pr":0.9185,"g":0.3408,"dm":-2.05,"db":15.2,"dr":-0.4095,"dav":9.05,"rcv":0.7136,"yt":0.0298,"po":0.207,"last":441.66,"s3":8.8568,"s4":23.9814,"s7":0.0,"s1":6.3758,"s8":4,"s6":0,"v":[135.8,137.5,165.9,133,141.9,130.97,150,144.99,134.49,164,154.59,155,134.59,138.93,165.84,170,169.32,163.24,150,156.22,182.52,187.5,165.46,151.04,153,175.07,184.97,198,214.97,214.23,244,257,271,273.25,266.9,275,270,271.9,285.7,311,363.69,437.8,431.55,432.51,412,462,468,455,455,419.5,439.5,438,386.03,381.8,384.54,385,382.96,382.96,442,441.66],"d":[14,5,20,0,6.25],"t":13.141,"s":0,"flat":0.0339,"liq":true,"why":"A favor: precio muy firme al alza (r 0,92). En contra: dividendo a la baja (r -0,41), dividendo con saltos grandes entre años."},{"tk":"VAPORES","sec":"Industrial","name":"Compañía Sud Americana de Vapores S.A.","ipsa":true,"pm":-0.6676,"pb":80.9106,"pr":-0.7762,"g":-0.1183,"dm":-1.1581,"db":23.4685,"dr":-0.1954,"dav":19.9942,"rcv":0.4111,"yt":0.209,"po":1.9026,"last":50.43,"s3":12.069,"s4":2.7978,"s7":4.7216,"s1":15,"s8":0,"s6":0,"v":[57,73.2,69.5,77.8,84.98,96.4,113,81.99,97.5,84.35,66.7,65.5,72.5,67,69.1,80,79.04,82.49,59.56,54.45,63.5,56.9,53.3,49.7,50.6,54.1,67,67.45,73.7,74.9,59.47,59.76,64.73,55.52,55,51.9,52.2,53.7,54.7,55.5,52,52.3,51.76,47.62,49.15,48.39,50.3,46.9,48.42,46.78,48.05,47.84,48.5,51,44.49,43.8,46.51,46.51,46.51,50.43],"d":[11.884,27.836,31.996,16.487,11.768],"t":10.539,"s":0,"flat":0.0339,"liq":true,"why":"A favor: rinde alto (20,9%). En contra: precio a la baja (r -0,78), dividendo sin tendencia (r -0,20), paga más de lo que gana (190%)."},{"tk":"ENTEL","sec":"Consumo","name":"Empresa Nacional de Telecomunicaciones","ipsa":true,"pm":15.7526,"pb":2786.8404,"pr":0.5656,"g":0.0552,"dm":-167.456,"db":948.856,"dr":-0.7895,"dav":446.488,"rcv":0.4124,"yt":0.0641,"po":0.3785,"last":3979.9,"s3":3.1579,"s4":19.5698,"s7":4.6908,"s1":13.7297,"s8":7,"s6":0,"v":[2900.4,2879,3318,2970,3439,3115,3079,2869,2979.9,2850,2742.7,2945.4,2625,2930,3055,3260,3135,3358,3040,3225.2,3372,3194.9,2990,3015.4,2905,3222.7,3037,3146.1,3260.9,3300,2955,2787,2648.6,2800,3149,3129,2908.4,2952.8,3098.9,3043,2910,2740,2762,3000.6,3195.8,3352,3390,4486.8,4665.2,4701,4690,3894.9,3670,3560,3600,3600,3643,3643,3977,3979.9],"d":[839,770,94,285.44,244],"t":255,"s":0,"flat":0.0339,"liq":true,"why":"A favor: rinde alto (6,4%). En contra: precio sin tendencia clara (r 0,57), dividendo a la baja (r -0,79)."},{"tk":"CONCHATORO","sec":"Consumo","name":"Viña Concha y Toro S.A.","ipsa":true,"pm":-4.5834,"pb":1215.3582,"pr":-0.609,"g":-0.0496,"dm":-5.485,"db":58.385,"dr":-0.4953,"dav":41.93,"rcv":0.3245,"yt":0.0512,"po":0.5324,"last":888.01,"s3":7.5702,"s4":4.8876,"s7":6.8886,"s1":10.9796,"s8":10,"s6":0,"v":[1485,1310,1282,1174,1269.2,1250,1300,1255,1212.1,1090.6,1097,1066,1055,1070,1017,1083,1016.9,964.47,920,933.42,1139,1079.5,988.27,996.18,1040,1037.6,996.67,1002.6,1186.5,1280,1155,1099.7,1181,1135,1106.8,1108.4,1079,1090,1122,1223.9,1215,1174,1148.6,1084.1,1039.9,1118,1054,1029,1044,1025,996.12,935,884.27,887.44,894,860,852.33,852.33,930,888.01],"d":[67.8,28.4,47.2,23.35,42.9],"t":45.5,"s":0,"flat":0.0169,"liq":true,"why":"En contra: precio a la baja (r -0,61), dividendo a la baja (r -0,50)."},{"tk":"SQM-B","sec":"Commodities","name":"SQM serie B","ipsa":true,"pm":-226.7408,"pb":62773.7541,"pr":-0.225,"g":-0.046,"dm":-1083.386,"db":6121.686,"dr":-0.546,"dav":2871.528,"rcv":0.8188,"yt":0.0386,"po":0.2119,"last":62782.0,"s3":6.8106,"s4":9.6869,"s7":0.0,"s1":8.2759,"s8":4,"s6":0,"v":[52100,43489,42700,53000,68010,63300,87986,76500,89499,89602,90100,89800,88400,68600,77446,73990,63800,54650,52200,58399,61515,52800,52852,43300,44300,52650,40300,48000,47698,43850,43002,38027,35710,35600,37305,37001,37200,36600,38750,36741,37800,32600,28266,33200,35770,44095,41485,45419,60000,63800,67700,66700,74950,82755,76200,68450,65450,65450,65450,62782],"d":[1937.5,7168.8,5041.4,209.94,0],"t":2424.7,"s":0,"flat":0.0339,"liq":true,"why":"En contra: precio a la baja (r -0,23), dividendo a la baja (r -0,55), dividendo con saltos grandes entre años."},{"tk":"COPEC","sec":"Commodities","name":"Empresas Copec S.A.","ipsa":true,"pm":2.9725,"pb":6369.6108,"pr":0.1093,"g":0.0057,"dm":-94.66,"db":610.636,"dr":-0.8793,"dav":326.656,"rcv":0.222,"yt":0.029,"po":0.2947,"last":6340.1,"s3":1.8111,"s4":13.8657,"s7":9.4496,"s1":6.223,"s8":4,"s6":0,"v":[6103,6586,6720,6200,6500,6270,6540,6770,7380,7731,6201.2,6502,6224,6329,6005,5980,5610,5617,5850,5950,6435,6158,6300,5925,6454.8,6410,5911.1,6200,7039,6851,7619.5,7250,6560,5987.3,6020,6070,6051,6079,6562,6770,6550,6500,6500,6344,6439,7200,7040,6739,6646,7060,7450,7202.4,6400,6303,6323.4,5751,6249.6,6249.6,6430,6340.1],"d":[579,399.54,282.37,133.8,238.57],"t":184.12,"s":0,"flat":0.0339,"liq":true,"why":"En contra: precio sin tendencia clara (r 0,11), dividendo a la baja (r -0,88)."},{"tk":"CCU","sec":"Consumo","name":"Compañía Cervecerías Unidas S.A.","ipsa":true,"pm":-6.9433,"pb":6027.4264,"pr":-0.2116,"g":-0.0142,"dm":-133.632,"db":724.778,"dr":-0.7804,"dav":323.882,"rcv":0.4676,"yt":0.0315,"po":0.3388,"last":5040.4,"s3":3.2944,"s4":9.8553,"s7":3.3111,"s1":6.7397,"s8":7,"s6":0,"v":[6600,6930,6645,6336.1,5889,5700,5880,5800,5200,4870.6,5261,5175,5395.8,5665,6115,6324.3,6120,6590,5950,6465,6956,6301,5647.8,5088,5340,5610,5639.8,5601,5817,5890,5712,5385,5201,5070,5300,5321,5680,5739.9,5975,6660,7200,7270,6300,6050.5,5752.2,5983,5908,6000,6241,5865.5,6416.1,5889,5278,5100,5350,5100,5218,5218,5330,5040.4],"d":[786.17,335.1,111.3,202.56,184.28],"t":158.53,"s":0,"flat":0.0169,"liq":true,"why":"En contra: precio a la baja (r -0,21), dividendo a la baja (r -0,78)."},{"tk":"CMPC","sec":"Commodities","name":"Empresas CMPC S.A.","ipsa":true,"pm":-4.7309,"pb":1596.4591,"pr":-0.3763,"g":-0.0443,"dm":-40.5426,"db":236.5132,"dr":-0.8906,"dav":114.8854,"rcv":0.2549,"yt":0.0098,"po":0.2502,"last":970.63,"s3":1.6414,"s4":7.7958,"s7":8.6277,"s1":2.0987,"s8":4,"s6":0,"v":[1340,1428,1469.7,1320.4,1457,1271,1424,1525,1531,1700,1473.1,1497,1475,1415.9,1369,1375.3,1328.4,1265,1385,1534,1656,1548,1636.1,1600,1687,1700,1515,1715,1991,1896,1921.1,1770,1636,1578,1564,1531,1535,1560.9,1674,1625,1560,1485,1510,1424,1370.1,1516,1417.5,1360,1296.7,1414,1309,1293,1260,1116.1,1066,1026,1070,1070,957,970.63],"d":[174.35,195.59,82.84,104.43,17.217],"t":9.5063,"s":0,"flat":0.0169,"liq":true,"why":"En contra: precio a la baja (r -0,38), dividendo a la baja (r -0,89), rinde poco (1,0%)."},{"tk":"PAMPA","sec":"Commodities","name":"Pampa Investments S.A.","ipsa":true,"pm":0.0527,"pb":5.3889,"pr":0.4075,"g":0.0797,"dm":0.0,"db":0.0,"dr":0.0,"dav":0.0,"rcv":9,"yt":0.0,"po":null,"last":10.43,"s3":0,"s4":17.5935,"s7":0.0,"s1":0.0,"s8":0,"s6":0,"v":[3.7,3.789,4.015,4.096,5.632,6.474,8.376,6.3,7.75,7.689,8.688,7.978,7.655,6.71,8.044,8.54,7.646,7.151,6.65,7.08,7.998,6.85,6.908,5.786,6.35,7.099,6.5,6.87,6.876,6.833,6.67,5.803,4.76,4.651,4.233,4.58,4.094,4.29,4.448,4.4,4.498,4.099,3.879,5.2,5.3318,5.973,5.926,6.203,7.89,9.16,10.2,10.15,10.87,12.14,11.79,11.18,10.56,10.56,10.56,10.43],"d":[0,0,0,0,0],"t":0,"s":0,"flat":0.0339,"liq":true,"why":"En contra: precio sin tendencia clara (r 0,41), no pagó dividendos."},{"tk":"CAP","sec":"Commodities","name":"CAP S.A.","ipsa":true,"pm":-43.5734,"pb":7858.2261,"pr":-0.5088,"g":-0.0683,"dm":-580.18,"db":2600.484,"dr":-0.8586,"dav":859.944,"rcv":0.5697,"yt":0.0,"po":0,"last":5215.0,"s3":2.1209,"s4":6.1405,"s7":0.7581,"s1":0.0,"s8":0,"s6":0,"v":[7468,8300,8990,9241.2,12200,10577,10545,8269.9,8246.4,7231,6260,5048.8,6530,6950,7350,6888,6609,5651,5700,5937.9,6400,6000,5763,4892,6000,7200,6717,6629,6728.6,6864.5,6180,5910.4,5310,5600,6030,5770,5335,5260,5439,5325,5150,4870,5050,4798.5,4630,5198,5244.8,6300,6468,7420,8250,7107,6940,7015,6849,6500,6313.3,6313.3,5390,5215],"d":[1781.6,2238.6,279.52,0,0],"t":0,"s":0,"flat":0.0169,"liq":true,"why":"En contra: precio a la baja (r -0,51), dividendo a la baja (r -0,86), dividendo con saltos grandes entre años."}];
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const label = i => { const t = 10 + i; return MES[t % 12] + " " + (2021 + Math.floor(t / 12)); };
+const nf = (v, d) => v.toLocaleString("es-CL", {minimumFractionDigits:d, maximumFractionDigits:d});
+const pct = v => (v >= 0 ? "+" : "−") + nf(Math.abs(v * 100), 1) + "%";
+const sgn = (v, d) => (v >= 0 ? "+" : "−") + nf(Math.abs(v), d);
+const money = v => Math.abs(v) >= 1000 ? nf(v, 0) : Math.abs(v) >= 10 ? nf(v, 1) : Math.abs(v) >= 1 ? nf(v, 2) : nf(v, 3);
+const eq = (m, b, d) => `y = ${nf(m, d)}x ${b >= 0 ? "+" : "−"} ${nf(Math.abs(b), 2)}`;
+const N = 60;
+const clamp = (v, lo, hi) => Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+const payHigh = p => 11*(p == null || p <= 0 || p > 1 ? 0 : p >= .90 ? .4 : p > .75 ? .75 : p >= .50 ? 1 : p >= .40 ? .75 : p >= .30 ? .4 : p >= .20 ? .15 : 0);
+const LIQ = {"CHILE":[15265413967,12705307560],"ENELGXCH":[116914820,57234833],"ITAUCL":[4010196991,2936311700],"ZOFRI":[28496718,15812336],"ANDINA-B":[3180042434,2768874550],"SCHWAGER":[31483256,8870389],"BCI":[6336964074,6048972315],"BSANTANDER":[9334285441,8473406294],"ENELCHILE":[3965814151,3212164034],"LTM":[21611430515,21460331950],"SALFACORP":[638396178,417600000],"ANDINA-A":[89883726,10085312],"AGUAS-A":[1880318521,1297309661],"ILC":[1184891466,874490700],"IAM":[497214722,283750856],"PARAUCO":[3555201510,2412478440],"MALLPLAZA":[6106802056,3901201614],"LIPIGAS":[31627137,19956168],"EISA":[136332023,7576986],"CENCOMALLS":[1227590471,727659996],"BESALCO":[410354432,99312220],"FALABELLA":[12244696226,9196460000],"INGEVEC":[104735065,17321852],"PROVIDA":[16816319,7810459],"QUINENCO":[1349112828,942579195],"HABITAT":[89788083,75130122],"ENELAM":[6021032078,3403700983],"PUCOBRE":[175647725,38546013],"COLBUN":[1401318848,1012613976],"ECL":[1307896677,948581914],"FORUS":[93846921,25617279],"CENCOSUD":[6811442987,5768676225],"SK":[52545999,5256350],"SMSAAM":[239895413,5359064],"SMU":[1408313870,876796230],"EMBONOR-B":[193931043,7900034],"RIPLEY":[1389256774,849284400],"SOQUICOM":[15352492,5921095],"VAPORES":[1820655030,1448518179],"ENTEL":[1220071858,665992884],"CONCHATORO":[800780818,498095000],"SQM-B":[21275313705,19812675820],"COPEC":[3787777589,3393655980],"CCU":[3046211406,1274154690],"ANTARCHILE":[1002185156,30742876],"SQM-A":[94336425,30254518],"SONDA":[206989576,61568928],"CMPC":[3951768922,2798379528],"PAMPA":[672024844,266617040],"CAP":[1333506826,905963127],"SOCOVESA":[161086242,78697907],"HITES":[51707443,14630000],"LAS CONDES":[67387288,28240800],"INVERCAP":[39575839,16055101],"MASISA":[32763233,10664303],"ENAEX":[28258787,963216],"CAMPOS":[9729372,0],"SALMOCAM":[10304652,0],"SCOTIABKCL":[422277,0],"CAMANCHACA":[94860267,1175627],"ELECMETAL":[6976044,0],"HIPERMARC":[2470238,57011],"FROWARD":[3161124,2300],"EDELMAG":[13929188,0],"IANSA":[25602375,384051],"BANVIDA":[23834157,484986],"CUPRUM":[12365724,4003726],"EMBONOR-A":[75485,0],"VOLCAN":[1118256,0],"CAROZZI":[2673189,339498],"TRICOT":[16578033,0],"MARINSA":[2414245,202577],"ESVAL-C":[159336,0],"POTASIOS-A":[52105928,1084950],"WATTS":[50753383,20127],"MOLYMET":[14848701,1925823],"INDISA":[60377148,40181],"DUNCANFOX":[1463955,0],"PAZ":[82005624,758039],"MANQUEHUE":[24566353,1027299],"ISANPA":[3483,0],"ESSBIO-C":[395626,60],"GASCO":[6264252,377127],"NAVIERA":[451584,0],"VSPT":[324915,0],"BLUMAR":[36367872,0],"SIEMEL":[1033609,0],"MOLLER":[23151295,0],"ALMENDRAL":[33088757,1344153],"CGE":[5651005,646182],"MULTI X":[84620898,334865],"VENTANAS":[3789867,0],"EDELPA":[200872,0],"MINERA":[33296047,3568400],"CTC":[646412,0],"COLO COLO":[4063991,112065],"CIC":[60147,0],"SANTA RITA":[1442,0],"ENELDXCH":[304396,0],"POLPAICO":[13637,0],"AZUL AZUL":[20085058,1040],"EMILIANA":[18182,0],"AQUACHILE":[0,0],"INFODEMA":[18000,0],"COPEVAL":[34494,0],"FOSFOROS":[607892,0],"CRISTALES":[4265772,0],"CINTAC":[12986054,329268],"CRUZADOS":[181996,0],"ENJOY":[3890128,1592181]};
+const DEBT = {"CHILE":[6986700000000,16185000000000,null,0.02243,0.2158,null],"ENELGXCH":[190610000,670080000,925690000,0.12262,0.20421,23.536],"ITAUCL":[9372000000000,19007000000000,null,0.00892,0.09445,null],"ZOFRI":[41564000000,0,19235000000,0.07606,0.28008,null],"ANDINA-B":[368850000000,1175600000000,591880000000,0.08672,0.23748,86.426],"SCHWAGER":[1770700000,22183000000,14545000000,0.08247,0.20863,71.905],"BCI":[12043000000000,25768000000000,null,0.01316,0.14733,null],"BSANTANDER":[15985000000000,27453000000000,null,0.01687,0.23592,null],"ENELCHILE":[276940000,3821300000,1143000000,0.04109,0.10997,66.905],"LTM":[2650900000,9028100000,3690800000,0.0819,1.0799,454.53],"SALFACORP":[84478000000,672400000000,79485000000,0.02828,0.07912,120.13],"ANDINA-A":[368850000000,1175600000000,591880000000,0.08672,0.23748,86.426],"AGUAS-A":[147120000000,1447400000000,354190000000,0.05501,0.10664,108.25],"ILC":[1023400000000,3885200000000,581840000000,0.01692,0.25261,258.08],"IAM":[149740000000,1447500000000,352140000000,0.05021,0.08724,89.914],"PARAUCO":[298270000000,1901000000000,323970000000,0.04567,0.10566,80.955],"MALLPLAZA":[347620000000,1662400000000,539280000000,0.04679,0.29734,34.124],"LIPIGAS":[85277000000,355970000000,143780000000,0.09635,0.33813,131.39],"EISA":[27779000000,276530000000,54005000000,0.04792,0.14952,147.07],"CENCOMALLS":[79770000000,934850000000,null,0.04764,0.11745,29.745],"BESALCO":[70326000000,521340000000,147170000000,0.03853,0.18628,130.19],"FALABELLA":[1748300000000,5750600000000,1755400000000,0.03669,0.19021,53.366],"INGEVEC":[65714000000,140210000000,35720000000,0.06388,0.22564,129.75],"PROVIDA":[121620000000,5769100000,197530000000,0.08159,0.13363,0.479],"QUINENCO":[2547500000000,16688000000000,1938100000000,0.01618,0.0998,105.71],"HABITAT":[82410000000,108480000000,237220000000,0.2157,0.47038,26.262],"ENELAM":[1645600000,7953400000,3740600000,0.04805,0.07614,39.321],"PUCOBRE":[82662000,341250000,298930000,0.13747,0.27988,54.511],"COLBUN":[832490000,2439700000,485620000,0.01945,0.03511,73.714],"ECL":[224460000,2664700000,679270000,0.06153,0.13183,138.56],"FORUS":[57642000000,88469000000,41273000000,0.05382,0.09148,32.818],"CENCOSUD":[705270000000,5700300000000,917630000000,0.03118,0.04612,99.365],"SK":[563970000,1824000000,557810000,0.05041,0.10671,79.756],"SMSAAM":[444400000,460400000,193730000,0.0383,0.07293,41.645],"SMU":[92534000000,1303700000000,104840000000,0.0239,0.05613,160.8],"EMBONOR-B":[183110000000,385360000000,181430000000,0.0648,0.14711,62.253],"RIPLEY":[192920000000,2427200000000,139160000000,0.02013,0.10887,204.68],"SOQUICOM":[6337000,5815000,12196000,0.05903,0.12948,8.704],"VAPORES":[33327000,983000,-13028000,-0.00119,-0.00732,0.015],"ENTEL":[137720000000,2348100000000,590580000000,0.02358,0.10629,118.62],"CONCHATORO":[36700000000,595000000000,126290000000,0.03321,0.07634,70.176],"SQM-B":[4349400000,5314300000,3004000000,0.11553,0.2182,61.25],"COPEC":[2532200000,13753000000,2706200000,0.033,0.08359,88.65],"CCU":[348150000000,1279900000000,345110000000,0.03863,0.07943,82.488],"ANTARCHILE":[2543400000,13921000000,2581900000,0.03133,0.08234,88.996],"SQM-A":[4349400000,5314300000,3004000000,0.11553,0.2182,61.25],"SONDA":[72593000000,448310000000,96792000000,0.03267,0.03746,70.632],"CMPC":[815750000,6434000000,800070000,-0.0052,0.01144,62.925],"CAP":[351860000,1785500000,510950000,0.00622,-0.03263,59.728],"SOCOVESA":[5662000000,499750000000,11938000000,0.00709,-0.0471,157.79],"HITES":[15473000000,241890000000,3620500000,0.00128,-0.15947,280.71],"LAS CONDES":[39257000000,269650000000,-23291000000,-0.02983,-0.20659,106.72],"INVERCAP":[378400000,1905200000,468640000,0.00298,-0.03256,55.857],"MASISA":[8158000,135970000,-3464000,-0.02744,-0.12565,47.752],"ENAEX":[284930000,656890000,385900000,0.09267,0.20959,59.691],"CAMPOS":[7000,2852000,null,-0.00094,-0.17808,2.67],"SALMOCAM":[17764000,112880000,60689000,0.04256,0.06653,51.677],"SCOTIABKCL":[7480400000000,18621000000000,null,0.01124,0.12278,null],"CAMANCHACA":[71237000,228350000,137120000,0.07136,0.12076,47.745],"ELECMETAL":[124980000000,480050000000,177770000000,0.04832,0.09262,56.817],"HIPERMARC":[3284300000,54428000000,5221800000,0.0109,0.00949,51.221],"FROWARD":[3795000,1346000,12460000,0.04231,0.07814,1.689],"EDELMAG":[394760000,33272000000,21262000000,0.08132,0.23462,69.856],"IANSA":[10557000,241800000,-8278000,-0.01224,-0.17127,94.233],"BANVIDA":[12455000000,83142000000,null,-0.00101,0.18699,10.849],"CUPRUM":[123610000000,3752700000,153550000000,0.0963,0.16823,0.553],"EMBONOR-A":[183110000000,385360000000,181430000000,0.0648,0.14711,62.253],"VOLCAN":[19145000000,83273000000,18716000000,0.01067,0.06451,26.964],"CAROZZI":[43186000000,736240000000,207520000000,0.06094,0.13856,108.34],"TRICOT":[32299000000,162190000000,32906000000,0.04739,0.13287,103.73],"MARINSA":[267280000000,0,null,0.0063,0.12087,null],"ESVAL-C":[52706000000,816320000000,155810000000,0.04239,0.08051,153.01],"POTASIOS-A":[10434000,151000,null,-0.00178,0.08857,0.037],"WATTS":[17732000000,210960000000,51937000000,0.0386,0.09769,72.741],"MOLYMET":[101990000,672610000,220940000,0.06279,0.1354,68.822],"INDISA":[12334000000,124720000000,31951000000,0.03922,0.07509,55.779],"DUNCANFOX":[58680000000,67096000000,46258000000,0.05795,0.11066,24.787],"PAZ":[43774000000,356830000000,28643000000,0.02435,0.06792,135.34],"MANQUEHUE":[19034000000,114520000000,1759500000,0.00282,0.00889,66.929],"ISANPA":[22024000,7182600000,-701950000,-0.00387,0.09723,6.561],"ESSBIO-C":[6793500000,646060000000,108890000000,0.04101,0.07307,156.59],"GASCO":[54720000000,397270000000,96402000000,0.0316,-0.00094,81.322],"NAVIERA":[90813000,699660000,178580000,0.04263,0.16162,116.99],"VSPT":[16874000000,71958000000,24539000000,0.01781,0.03081,23.884],"BLUMAR":[40709000,296060000,86019000,0.03356,0.05326,56.539],"SIEMEL":[20843000000,188300000000,31212000000,0.02031,0.08064,55.004],"MOLLER":[1869600000,174080000000,-1336200000,-0.00244,0.058,185.45],"ALMENDRAL":[217640000000,2322900000000,782940000000,0.02291,0.0932,107.68],"CGE":[35200000000,1696200000000,177430000000,0.0187,0.02426,110.66],"MULTI X":[23103000,187150000,464000,-0.03219,0.04881,41.965],"VENTANAS":[48673000,211500000,43781000,0.0367,0.06228,87.161],"EDELPA":[2313500000,6434900000,2630700000,0.00737,-0.00187,22.342],"MINERA":[991520000,2660200000,457100000,0.01314,0.03637,41.453],"CTC":[50310000000,52082000000,238970000000,-0.03677,-0.06629,5.351],"COLO COLO":[953820000,0,5564300000,-0.02974,0.10235,null],"CIC":[1512200000,27669000000,6707900000,0.03122,0.09943,112.54],"SANTA RITA":[2919300000,96022000000,1689500000,-0.00907,-0.0286,46.793],"ENELDXCH":[3501900000,421850000000,78235000000,0.00893,0.04294,59.353],"POLPAICO":[5201500000,104770000000,33634000000,0.03033,0.05128,49.03],"AZUL AZUL":[4259000000,12342000000,6638800000,0.04716,0.1012,126.68],"EMILIANA":[809390000,29688000000,1306100000,-0.00666,-0.0359,90.582],"COPEVAL":[29660000000,151610000000,12805000000,0.02728,0.03019,268.3],"FOSFOROS":[750360000,36251000000,3147200000,-0.00747,-0.05167,38.909],"CRISTALES":[19569000000,265480000000,34034000000,-0.00122,-0.00974,63.712],"CINTAC":[18133000,256120000,5809000,-0.01099,-0.6174,523.96],"CRUZADOS":[2868000000,42370000000,2872200000,-0.00551,-0.03672,152.49],"ENJOY":[2486900000,360850000000,8092300000,0.0028,null,null]};
+const FINS = new Set(["ILC","QUINENCO"]);
+const debtInfo = r => { const d = DEBT[r.tk]; if (!d) return {t:"na"}; const [cash,debt,eb,roa,roe,de] = d;
+  if (r.sec === "Banca" || FINS.has(r.tk)) return roa > 0 && roe > 0 ? {t:"cap", x: roa/roe} : {t:"na"};
+  if (debt != null && cash != null && debt <= cash) return {t:"nd", x: -1};
+  if (eb == null) return de != null ? {t:"de", x: de/100} : debt === 0 ? {t:"nd", x: -1} : {t:"na"};
+  if (eb <= 0) return {t:"neg"};
+  return {t:"nd", x: (debt - cash)/eb}; };
+const debtPts = (r, mx) => { const i = debtInfo(r); return i.t === "cap" ? mx*clamp(i.x,.06,.10) : i.t === "nd" ? mx*(1-clamp(i.x,1,5)) : i.t === "de" ? mx*(1-clamp(i.x,.5,1.5)) : 0; };
+const debtLbl = r => { const i = debtInfo(r); return i.t === "cap" ? `Patrimonio = ${nf(i.x*100,1)}% de los activos` : i.t === "nd" ? (i.x <= 0 ? "Tiene más caja que deuda" : `Deuda neta = ${nf(i.x,1)} veces el EBITDA`) : i.t === "de" ? `Deuda = ${nf(i.x*100,0)}% del patrimonio` : i.t === "neg" ? "EBITDA negativo" : "Sin dato"; };
+const chw = r => (r.yt || 0) + (r.dav > 0 ? Math.max(-0.1, Math.min(0.10, r.dm/r.dav)) : 0);
+const tier = m => m >= 1e9 ? "alta" : m >= 1e8 ? "media" : m >= 5e6 ? "baja" : "muy baja";
+const mm = v => v >= 1e9 ? nf(v/1e9,1) + " mil millones" : nf(v/1e6, v >= 1e7 ? 0 : 1) + " millones";
+ROWS.forEach(r => { const l = LIQ[r.tk] || [0,0]; r.mv = l[1]; r.av = l[0]; r.tier = tier(r.mv);
+  if (r.liq && r.mv < 5e6) { r.liq = false; r.rank = null; r.why = `No cumple el requisito de liquidez: la mitad de los días se transa menos de $${mm(r.mv)} (mínimo exigido: $5 millones diarios).`; }
+  else if (!r.liq) r.why = `No cumple el requisito de liquidez: el precio no cambió en ${nf(r.flat*100,0)}% de los meses y la mitad de los días se transa menos de $${mm(r.mv)}.`; });
+const liqPts = (r, mx) => mx * clamp(Math.log10(Math.max(r.mv,1)), Math.log10(5e6), 9);
+const MODES = {
+  crec: {label: "Crecimiento", crit: [
+      ["c1","Tendencia precio",16,"r de la recta del precio (5 años): −1 = 0 pts; +1 = 16.", r => `r precio = ${sgn(r.pr,2)}`, r => 16*(r.pr+1)/2],
+      ["c2","Crecimiento precio",11,"Crecimiento anual del precio (ajuste exponencial): 0% o menos = 0; 30% o más = 11.", r => `Crecimiento anual ${pct(r.g)}`, r => 11*clamp(r.g,0,.30)],
+      ["c3","Tendencia dividendo",11,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 11.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.dav > 0 ? 11*(r.dr+1)/2 : 0],
+      ["c4","Crecimiento dividendo",11,"Pendiente de la recta ÷ dividendo promedio (cuánto sube por año): 0% o menos = 0; 20% o más = 11.", r => r.dav > 0 ? `Sube ${nf(r.dm/r.dav*100,0)}% del promedio por año` : "Sin dividendos", r => r.dav > 0 ? 11*clamp(r.dm/r.dav,0,.20) : 0],
+      ["c5","% de pago sano",11,"Payout: 50–75% = 11 (reparte bastante y le queda margen para crecer); 40–50% o 75–90% = 8,25; 30–40% o 90–100% = 4,4; 20–30% = 1,65; menos de 20%, más de 100%, pérdidas o sin dato = 0.", r => r.po == null ? "Sin dato confiable" : `Payout ${nf(r.po*100,0)}%`, r => payHigh(r.po)],
+      ["c6","Constancia",11,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 11 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => 11*clamp(0.6-r.rcv,0,0.6)],
+      ["c8","Rendimiento + crecimiento",11,"Rendimiento de los últimos 12 meses + crecimiento anual del dividendo (pendiente ÷ promedio, limitado entre −10% y +10% para no premiar la recuperación post-pandemia): 5% o menos = 0; 17% o más = 11.", r => `Rinde ${nf((r.yt||0)*100,1)}% + crece ${nf(r.dav > 0 ? Math.max(-10, Math.min(10, r.dm/r.dav*100)) : 0,1)}% = ${nf(chw(r)*100,1)}%`, r => 11*clamp(chw(r),.05,.17)],
+      ["c9","Deuda",11,"Empresas: deuda neta ÷ EBITDA; 1 vez o menos (o más caja que deuda) = 11; 5 veces o más = 0. Bancos, ILC y Quiñenco: patrimonio ÷ activos; 10% o más = 11; 6% o menos = 0. Sin EBITDA: deuda ÷ patrimonio; 50% o menos = 11; 150% o más = 0. EBITDA negativo o sin dato = 0.", r => debtLbl(r), r => debtPts(r,11)],
+      ["c7","Liquidez",7,"Monto transado en un día típico (mediana del último año), en escala logarítmica: $5 millones = 0 pts; $1.000 millones o más = 7.", r => `Día típico: $${mm(r.mv)} transados (liquidez ${r.tier})`, r => liqPts(r,7)]],
+    why: r => {
+      const f = [], c = [];
+      if (r.g >= .25) f.push(`precio crece ${nf(r.g*100,0)}% al año`); else if (r.g < 0) c.push(`precio baja ${nf(-r.g*100,0)}% al año`); else if (r.g < .10) c.push(`precio crece poco (${nf(r.g*100,0)}% al año)`);
+      if (r.pr >= .9) f.push(`tendencia de precio muy firme (r ${nf(r.pr,2)})`); else if (r.pr < 0) c.push(`precio a la baja (r ${nf(r.pr,2)})`); else if (r.pr < .6) c.push(`precio sin tendencia firme (r ${nf(r.pr,2)})`);
+      if (r.dav <= 0) c.push("no pagó dividendos");
+      else { const dg = r.dm/r.dav;
+        if (r.dr >= .8 && dg >= .1) f.push(`dividendo crece ${nf(dg*100,0)}% al año de forma firme (r ${nf(r.dr,2)})`);
+        else if (r.dr >= .4) f.push(`dividendo al alza (r ${nf(r.dr,2)})`);
+        else if (r.dr < -0.2) c.push(`dividendo a la baja (r ${nf(r.dr,2)})`); else c.push(`dividendo sin tendencia (r ${nf(r.dr,2)})`);
+        if (r.rcv < .2) f.push("pagos muy parejos"); else if (r.rcv > .5) c.push("dividendo con saltos grandes"); }
+      if (r.po == null) { if (r.dav > 0) c.push("% de pago sin dato confiable"); }
+      else if (r.po > 1) c.push(`paga más de lo que gana (${nf(r.po*100,0)}%)`);
+      else if (r.po >= .9) c.push(`reparte casi todo (${nf(r.po*100,0)}%), poco margen para crecer`);
+      else if (r.po >= .5 && r.po <= .75) f.push(`reparte ${nf(r.po*100,0)}% de su utilidad, con margen para crecer`);
+      else if (r.po < .3) c.push(`reparte solo ${nf(r.po*100,0)}% de su utilidad`);
+      { const ch = chw(r); if (ch >= .15) f.push(`rinde + crece ${nf(ch*100,0)}% al año`); else if (ch < .09 && r.dav > 0) c.push(`rendimiento + crecimiento bajo (${nf(ch*100,0)}%)`); }
+      { const i = debtInfo(r); if ((i.t === "nd" && i.x <= 1.5) || (i.t === "cap" && i.x >= .095) || (i.t === "de" && i.x <= .6)) f.push("deuda baja"); else if ((i.t === "nd" && i.x >= 4) || (i.t === "cap" && i.x < .075) || (i.t === "de" && i.x >= 1.3) || i.t === "neg") c.push(i.t === "cap" ? "capital ajustado" : "deuda alta"); }
+      if (r.mv >= 1e9) f.unshift("liquidez alta"); else if (r.mv < 1e8) c.unshift(`liquidez baja ($${mm(r.mv)} en un día típico)`);
+      return (f.length ? "A favor: " + f.slice(0,3).join(", ") + "." : "") + (c.length ? (f.length ? " " : "") + "En contra: " + c.slice(0,3).join(", ") + "." : "");
+    }},
+  ing: {label: "Ingreso (anterior)", crit: [
+      ["s3","Tendencia dividendo",25,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 25.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.s3*25/30],
+      ["s4","Tendencia precio",20,"r de la recta del precio (5 años): −1 = 0 pts; +1 = 20.", r => `r precio = ${sgn(r.pr,2)}`, r => r.s4*20/25],
+      ["s7","Constancia",15,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 15 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => r.s7],
+      ["s1","Rendimiento actual",15,"Dividendos de los últimos 12 meses ÷ precio: 0% = 0; 7% o más = 15.", r => `Últimos 12 meses: $${money(r.t)} → ${nf(r.yt*100,1)}%`, r => r.s1],
+      ["s8","% de pago",10,"40–75% = 10; 30–40% o 75–90% = 7; 20–30% o 90–100% = 4; resto, pérdidas o sin dato = 0.", r => r.po == null ? "Sin dato confiable" : `Payout ${nf(r.po*100,0)}%`, r => r.s8],
+      ["s9","Liquidez",15,"Monto transado en un día típico (mediana del último año), en escala logarítmica: $5 millones = 0 pts; $1.000 millones o más = 15.", r => `Día típico: $${mm(r.mv)} transados (liquidez ${r.tier})`, r => liqPts(r,15)]],
+    why: r => (r.mv < 1e8 ? `Liquidez baja ($${mm(r.mv)} en un día típico). ` : "") + r.whyIng}
+};
+ROWS.forEach(r => { r.whyIng = r.why; r.sc = {}; });
+Object.entries(MODES).forEach(([m, M]) => {
+  const L = ROWS.filter(r => r.liq);
+  L.forEach(r => { const o = {}; let tot = 0; M.crit.forEach(([k,,,,,fn]) => { o[k] = fn(r); tot += o[k]; }); o.tot = tot; r.sc[m] = o; });
+  [...L].sort((a, c) => c.sc[m].tot - a.sc[m].tot).forEach((r, i) => r.sc[m].rank = i + 1);
+  L.forEach(r => r.sc[m].why = M.why(r));
+});
+let mode = "crec";
+try { const m = localStorage.getItem("ip-mode"); if (m && MODES[m]) mode = m; } catch (e) {}
+let CRIT = MODES[mode].crit;
+const SRC = k => CRIT.find(c => c[0] === k)[4];
+function setMode(m){
+  mode = m; CRIT = MODES[m].crit; rK = "rank"; rDir = 1;
+  ROWS.forEach(r => { if (!r.liq) return; Object.assign(r, r.sc[m]); r.why = r.sc[m].why; });
+  document.getElementById("modes").innerHTML = Object.entries(MODES).map(([k, M]) => `<button class="chip" data-m="${k}" aria-pressed="${k === m}">${M.label}</button>`).join("");
+  document.querySelectorAll("#modes .chip").forEach(b => b.addEventListener("click", () => { try { localStorage.setItem("ip-mode", b.dataset.m); } catch (e) {} setMode(b.dataset.m); }));
+  document.getElementById("crit").innerHTML = CRIT.map(([k, l, mx, desc]) => `<div><b>${l}</b><span>${mx} pts</span><small>${desc}</small></div>`).join("");
+  document.getElementById("rankhead").innerHTML = `<th data-k="rank" tabindex="0">#</th><th data-k="tk" tabindex="0">Acción</th>` +
+    CRIT.map(([k, l, mx]) => `<th data-k="${k}" tabindex="0">${l.replace(" ", "<br>")}<br><span class="mx">/${mx}</span></th>`).join("") +
+    `<th data-k="tot" tabindex="0" class="sep">Total<br><span class="mx">/100</span></th><th class="why-h">Por qué está en ese lugar</th>`;
+  document.querySelectorAll("#rankhead th[data-k]").forEach(th => {
+    const go = () => { if (rK === th.dataset.k) rDir *= -1; else { rK = th.dataset.k; rDir = (rK === "tk" || rK === "rank") ? 1 : -1; } renderRank(); };
+    th.addEventListener("click", go);
+    th.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
+  if (typeof cards !== "undefined" && Object.keys(cards).length) { [...liq].sort((a, c) => a.rank - c.rank).forEach(r => { fillScore(r); grid.appendChild(cards[r.tk]); }); }
+  if (typeof cards !== "undefined" && Object.keys(cards).length) apply();
+}
+const SECTOR_FIX = {"ENTEL":"Comunicación y tecnología","ENAEX":"Industrial","EISA":"Construcción e inmobiliaria","MOLLER":"Construcción e inmobiliaria","EDELPA":"Industrial","FROWARD":"Industrial","GASCO":"Utilities","ILC":"Financiero","HABITAT":"Financiero","PROVIDA":"Financiero","CUPRUM":"Financiero","QUINENCO":"Holdings","ANTARCHILE":"Holdings","ALMENDRAL":"Holdings","INDISA":"Salud","LAS CONDES":"Salud","CENCOMALLS":"Construcción e inmobiliaria"};
+ROWS.forEach(r => { if (SECTOR_FIX[r.tk]) r.sec = SECTOR_FIX[r.tk]; });
+const liq = ROWS.filter(r => r.liq), ill = ROWS.filter(r => !r.liq);
+const sectors = [...new Set(ROWS.map(r => r.sec))].sort();
+document.getElementById("sector").innerHTML = `<option value="">Todos los sectores</option>` + sectors.map(s => `<option>${s}</option>`).join("");
+const FILTERS = [["all","Todas"],["top","Top 10"]];
+let filt = "all", sec = "";
+try { const f = localStorage.getItem("ip-filt"); if (f && FILTERS.some(x => x[0] === f)) filt = f; } catch (e) {}
+document.getElementById("chips").innerHTML = FILTERS.map(([k,l]) => `<button class="chip" id="f-${k}" data-f="${k}" aria-pressed="false">${l}</button>`).join("");
+const visible = r => (filt === "all" || (filt === "ipsa" && r.ipsa) || (filt === "noipsa" && !r.ipsa) || (filt === "top" && r.rank && r.rank <= 10)) && (!sec || r.sec === sec);
+
+var rK = "rank", rDir = 1;
+function renderRank(){
+  const s = liq.filter(visible).sort((a, c) => rK === "tk" ? a.tk.localeCompare(c.tk) * rDir : (a[rK] - c[rK]) * rDir);
+  document.querySelector("#rank tbody").innerHTML = s.map(r => `<tr>
+    <td><span class="medal">${r.rank}</span></td>
+    <td class="tk">${r.tk}${r.ipsa ? ' <span class="ip">IPSA</span>' : ''}<small>${r.name} · ${r.sec}</small></td>
+    ${CRIT.map(([k,,mx]) => `<td title="${SRC(k)(r)}"><span class="sc">${nf(r[k],1)}<i><b style="width:${r[k]/mx*100}%"></b></i></span></td>`).join("")}
+    <td class="total sep">${nf(r.tot,1)}</td>
+    <td class="why">${r.why}</td></tr>`).join("") || `<tr><td colspan="10" style="text-align:center;color:var(--muted)">Ninguna acción cumple este filtro.</td></tr>`;
+  document.querySelectorAll("#rankhead th[data-k]").forEach(th => th.setAttribute("aria-sort", th.dataset.k === rK ? (rDir < 0 ? "descending" : "ascending") : "none"));
+}
+
+function niceTicks(lo, hi, n = 4){
+  const span = hi - lo || Math.abs(hi) || 1, mag = 10 ** Math.floor(Math.log10(span / n));
+  const step = [1,2,2.5,5,10].map(f => f*mag).find(s => span/s <= n) || 10*mag;
+  const t = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) t.push(+v.toFixed(10));
+  return t;
+}
+const tickFmt = (v, span) => span < 0.05 ? nf(v, 3) : span < 5 ? nf(v, 2) : span < 50 ? nf(v, 1) : nf(v, 0);
+
+function priceSvg(r){
+  const y = r.v, W = 360, H = 200, P = {l:52, r:8, t:8, b:24}, st = r.s;
+  const pts = []; for (let i = st; i < N; i++) if (y[i] != null) pts.push([i, y[i]]);
+  const f0 = r.pm*st + r.pb, f1 = r.pm*(N-1) + r.pb;
+  let lo = Math.min(...pts.map(p=>p[1]), f0, f1), hi = Math.max(...pts.map(p=>p[1]), f0, f1); if (hi === lo) { hi += Math.abs(hi)*0.05 || 1; lo -= Math.abs(lo)*0.05 || 1; } const pad = (hi-lo)*0.08; lo = Math.max(0, lo-pad); hi += pad;
+  const X = i => P.l + i/(N-1)*(W-P.l-P.r), Y = v => P.t + (hi-v)/(hi-lo)*(H-P.t-P.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Precio mensual de ${r.tk} y su recta">`;
+  niceTicks(lo, hi).forEach(v => s += `<line x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${P.l-6}" y="${Y(v)+4}" text-anchor="end">${tickFmt(v, hi-lo)}</text>`);
+  [[3,"2022"],[27,"2024"],[51,"2026"]].forEach(([i,t]) => s += `<text x="${X(i)}" y="${H-6}" text-anchor="middle">${t}</text>`);
+  s += `<polyline points="${pts.map(p=>X(p[0])+","+Y(p[1])).join(" ")}" fill="none" stroke="var(--price)" stroke-width="1.5" stroke-opacity=".45"/>`;
+  pts.forEach(p => s += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="2.1" fill="var(--price)"/>`);
+  s += `<line x1="${X(st)}" y1="${Y(f0)}" x2="${X(N-1)}" y2="${Y(f1)}" stroke="var(--fit)" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<line class="xh" y1="${P.t}" y2="${H-P.b}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/><circle class="hp" r="4" fill="var(--price)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`;
+  s += `<rect x="${P.l}" y="${P.t}" width="${W-P.l-P.r}" height="${H-P.t-P.b}" fill="transparent"/></svg>`;
+  return {s, W, X, Y, st, P};
+}
+function divSvg(r){
+  const d = r.d, W = 240, H = 200, P = {l:46, r:8, t:8, b:24};
+  const f = [1,2,3,4,5].map(x => r.dm*x + r.db);
+  let lo = Math.min(0, ...f), hi = Math.max(...d, ...f, r.dav, 0.0001); hi += (hi-lo)*0.08;
+  const bw = (W-P.l-P.r)/5, X = x => P.l + (x-0.5)*bw, Y = v => P.t + (hi-v)/(hi-lo)*(H-P.t-P.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dividendo anual de ${r.tk} y su recta">`;
+  niceTicks(lo, hi).forEach(v => s += `<line x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${P.l-6}" y="${Y(v)+4}" text-anchor="end">${tickFmt(v, hi-lo)}</text>`);
+  d.forEach((v, i) => {
+    const x = X(i+1), y0 = Y(0), y1 = Y(Math.max(v,0)), h = Math.max(0, y0-y1), w = bw*0.56, c = Math.min(4, h);
+    if (h > 0) s += `<path d="M${x-w/2},${y0} V${y1+c} Q${x-w/2},${y1} ${x-w/2+c},${y1} H${x+w/2-c} Q${x+w/2},${y1} ${x+w/2},${y1+c} V${y0} Z" fill="var(--div)"/>`;
+    s += `<text x="${x}" y="${H-6}" text-anchor="middle">${String(2021+i).slice(2)}</text>`;
+    s += `<rect class="dh" data-i="${i}" x="${x-bw/2}" y="${P.t}" width="${bw}" height="${H-P.t-P.b}" fill="transparent"/>`;
+  });
+  if (r.dav > 0) {
+    s += `<line x1="${P.l}" x2="${W-P.r}" y1="${Y(r.dav)}" y2="${Y(r.dav)}" stroke="var(--fg2)" stroke-dasharray="4 3" pointer-events="none"/>`;
+    s += `<line x1="${X(1)}" y1="${Y(f[0])}" x2="${X(5)}" y2="${Y(f[4])}" stroke="var(--divfit)" stroke-width="2" stroke-linecap="round" pointer-events="none"/>`;
+  } else s += `<text x="${(P.l+W-P.r)/2}" y="${H/2}" text-anchor="middle">Sin dividendos 2021–2025</text>`;
+  s += `<line x1="${P.l}" x2="${W-P.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)" stroke-opacity=".6" pointer-events="none"/></svg>`;
+  return s;
+}
+
+const LX0 = 6, LX1 = 10.7; // log10 de $1 millón a $50.000 millones
+function liqStrip(r){
+  const W = 600, H = 40, l = 6, rr = 6, X = v => l + (Math.min(Math.max(Math.log10(Math.max(v,1)), LX0), LX1) - LX0)/(LX1 - LX0)*(W - l - rr);
+  const zones = [[1e6,5e6,"var(--down)",.18],[5e6,1e8,"var(--down)",.07],[1e8,1e9,"var(--grid)",1],[1e9,5e10,"var(--up)",.12]];
+  let s = `<svg viewBox="0 0 ${W} ${H}" class="liqsvg" role="img" aria-label="Liquidez de ${r.tk}: ${mm(r.mv)} en un día típico">`;
+  zones.forEach(([a,b,c,o]) => s += `<rect x="${X(a)}" y="6" width="${X(b)-X(a)}" height="12" fill="${c}" fill-opacity="${o}"/>`);
+  [[5e6,"$5 mill."],[1e8,"$100 mill."],[1e9,"$1.000 mill."],[1e10,"$10.000 mill."]].forEach(([v,t]) => s += `<line x1="${X(v)}" x2="${X(v)}" y1="4" y2="20" stroke="var(--muted)" stroke-width="1"/><text x="${X(v)}" y="34" text-anchor="middle">${t}</text>`);
+  s += `<circle cx="${X(r.mv)}" cy="12" r="6.5" fill="var(--price)" stroke="var(--surface)" stroke-width="2"/></svg>`;
+  return `<div class="liqbox"><span class="lbl">Liquidez · día típico: <b>$${mm(r.mv)}</b> transados · nivel ${r.tier}${r.mv < 5e6 ? " (bajo el mínimo exigido)" : ""}</span>${s}</div>`;
+}
+function renderScatter(){
+  const box = document.getElementById("scatbox"); if (!box) return;
+  const pts = liq.filter(visible);
+  const W = 1000, H = 420, P = {l:48, r:16, t:16, b:44};
+  const X = v => P.l + (Math.min(Math.max(Math.log10(Math.max(v,1)), LX0), LX1) - LX0)/(LX1 - LX0)*(W - P.l - P.r);
+  const ys = pts.map(r => r.tot), lo = Math.max(0, Math.floor((Math.min(...ys, 100) - 5)/10)*10), hi = 100;
+  const Y = v => P.t + (hi - v)/(hi - lo)*(H - P.t - P.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Puntaje versus liquidez">`;
+  s += `<rect x="${X(1e6)}" y="${P.t}" width="${X(5e6)-X(1e6)}" height="${H-P.t-P.b}" fill="var(--down)" fill-opacity=".08"/><text x="${(X(1e6)+X(5e6))/2}" y="${P.t+14}" text-anchor="middle">bajo el mínimo</text>`;
+  for (let v = lo; v <= hi; v += 10) s += `<line x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${P.l-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  [[1e6,"$1 mill."],[1e7,"$10 mill."],[1e8,"$100 mill."],[1e9,"$1.000 mill."],[1e10,"$10.000 mill."]].forEach(([v,t]) => s += `<line x1="${X(v)}" x2="${X(v)}" y1="${P.t}" y2="${H-P.b}" stroke="var(--grid)"/><text x="${X(v)}" y="${H-P.b+18}" text-anchor="middle">${t}</text>`);
+  s += `<text x="${(P.l+W-P.r)/2}" y="${H-6}" text-anchor="middle">Monto transado en un día típico (escala logarítmica)</text>`;
+  s += `<text transform="translate(14 ${(P.t+H-P.b)/2}) rotate(-90)" text-anchor="middle">Puntaje</text>`;
+  const ordered = [...pts].sort((a,c) => a.rank - c.rank), top = new Set(ordered.slice(0, 12).map(r => r.tk));
+  const boxes = [], labels = [];
+  pts.forEach(r => boxes.push({x0:X(r.mv)-6, x1:X(r.mv)+6, y0:Y(r.tot)-6, y1:Y(r.tot)+6}));
+  const hit = b => boxes.some(o => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0) || b.x1 > W - P.r || b.x0 < P.l;
+  ordered.slice(0, 12).forEach(r => { const w = r.tk.length*7.2 + 4, cx = X(r.mv), cy = Y(r.tot);
+    for (const [dx, dy, anc] of [[9,4,"start"],[-9,4,"end"],[0,-11,"middle"],[0,19,"middle"]]) {
+      const x0 = anc === "start" ? cx+dx : anc === "end" ? cx+dx-w : cx-w/2, b = {x0, x1:x0+w, y0:cy+dy-11, y1:cy+dy+2};
+      if (!hit(b)) { boxes.push(b); labels.push(`<text x="${cx+dx}" y="${cy+dy}" text-anchor="${anc}" style="fill:var(--fg);font-weight:600">${r.tk}</text>`); break; } } });
+  pts.forEach(r => { const tp = top.has(r.tk);
+    s += `<circle class="sp" data-tk="${r.tk}" cx="${X(r.mv)}" cy="${Y(r.tot)}" r="${tp ? 6 : 4.5}" fill="var(--price)" fill-opacity="${tp ? 1 : .55}" stroke="var(--surface)" stroke-width="1.5"/>`; });
+  s += labels.join("");
+  s += `</svg>`;
+  box.innerHTML = s + `<div class="tip" hidden></div>`;
+  const tip = box.querySelector(".tip");
+  box.querySelectorAll(".sp").forEach(c => {
+    c.addEventListener("pointerenter", () => { const r = ROWS.find(x => x.tk === c.dataset.tk), bb = c.getBoundingClientRect(), b0 = box.getBoundingClientRect();
+      tip.innerHTML = `<b>${r.rank}. ${r.tk}</b> · ${nf(r.tot,1)} pts<br>Día típico: $${mm(r.mv)} (liquidez ${r.tier})`;
+      tip.style.left = Math.max(90, Math.min(b0.width-90, bb.left - b0.left + bb.width/2)) + "px"; tip.style.top = (bb.top - b0.top - 6) + "px"; tip.hidden = false; });
+    c.addEventListener("pointerleave", () => tip.hidden = true);
+  });
+}
+const cards = {};
+function fillScore(r){
+  const card = cards[r.tk]; if (!card) return;
+  card.querySelector(".rk").textContent = r.rank;
+  card.querySelector(".scorebox").innerHTML = `<div class="hd"><span>Puntaje · ${MODES[mode].label}</span><span>Total <b>${nf(r.tot,1)}</b> / 100</span></div>` +
+    CRIT.map(([k, l, mx]) => `<div class="srow" title="${SRC(k)(r)}"><span>${l}</span><span class="trk"><i style="width:${r[k]/mx*100}%"></i></span><span>${nf(r[k],1)} / ${mx}</span></div>`).join("");
+  card.querySelector(".whyc").textContent = r.why;
+}
+function makeCard(r, target){
+  const ps = priceSvg(r);
+  const card = document.createElement("article"); card.className = "card" + (r.liq ? "" : " dim");
+  card.innerHTML = `<div class="card-h"><h3><span class="rk"${r.liq ? "" : " hidden"}>${r.rank || ""}</span>${r.tk}<small>${r.name}</small></h3><span class="tags"><span class="tag lq-${r.tier.replace(" ","")}">Liquidez ${r.tier}</span><span class="tag${r.ipsa ? " both" : ""}">${r.ipsa ? "IPSA" : r.sec}</span></span></div>
+    <div class="pair">
+      <div class="pane"><span class="lbl">Precio · r ${sgn(r.pr,2)} · ${pct(r.g)} anual</span><span class="eqs">${eq(r.pm, r.pb, 3)}</span>${ps.s}</div>
+      <div class="pane"><span class="lbl">Dividendo · r ${sgn(r.dr,2)} · prom. $${money(r.dav)}</span><span class="eqs">${eq(r.dm, r.db, 2)}</span>${divSvg(r)}</div>
+    </div>
+    ${liqStrip(r)}
+    ${r.liq ? `<div class="scorebox"></div>` : ""}
+    <p class="whyc">${r.why}</p><div class="tip" hidden></div>`;
+  target.appendChild(card); cards[r.tk] = card; if (r.liq) fillScore(r);
+  const tip = card.querySelector(".tip");
+  const place = (x, y) => { const cb = card.getBoundingClientRect(); let left = x - cb.left; left = Math.max(90, Math.min(cb.width - 90, left)); tip.style.left = left + "px"; tip.style.top = (y - cb.top - 8) + "px"; tip.hidden = false; };
+  const [svgP, svgD] = card.querySelectorAll("svg");
+  const xh = svgP.querySelector(".xh"), hp = svgP.querySelector(".hp");
+  svgP.addEventListener("pointermove", e => {
+    const pt = svgP.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(svgP.getScreenCTM().inverse());
+    let i = Math.max(ps.st, Math.min(N-1, Math.round((q.x - ps.P.l)/(ps.W - ps.P.l - ps.P.r)*(N-1))));
+    while (i > ps.st && r.v[i] == null) i--;
+    if (r.v[i] == null) return;
+    xh.setAttribute("x1", ps.X(i)); xh.setAttribute("x2", ps.X(i)); xh.setAttribute("visibility", "visible");
+    hp.setAttribute("cx", ps.X(i)); hp.setAttribute("cy", ps.Y(r.v[i])); hp.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b>${label(i)}</b> · x = ${i}<br>Cierre $${money(r.v[i])} · Recta $${money(r.pm*i + r.pb)}`;
+    const b = svgP.getBoundingClientRect(), sc = b.width / ps.W; place(b.left + ps.X(i)*sc, b.top + ps.Y(r.v[i])*sc);
+  });
+  svgP.addEventListener("pointerleave", () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); hp.setAttribute("visibility", "hidden"); });
+  svgD.querySelectorAll(".dh").forEach(el => {
+    el.addEventListener("pointerenter", () => { const i = +el.dataset.i, bb = el.getBoundingClientRect();
+      tip.innerHTML = `<b>${2021+i}</b> · x = ${i+1}<br>Dividendo $${money(r.d[i])} · Recta $${money(r.dm*(i+1) + r.db)}`; place(bb.left + bb.width/2, bb.top + 20); });
+    el.addEventListener("pointerleave", () => tip.hidden = true);
+  });
+}
+const grid = document.getElementById("grid");
+setMode(mode);
+[...liq].sort((a, c) => a.rank - c.rank).forEach(r => makeCard(r, grid));
+
+
+function apply(){
+  renderScatter();
+  document.querySelectorAll("#chips .chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filt ? "true" : "false"));
+  ROWS.forEach(r => cards[r.tk].hidden = !visible(r));
+  renderRank();
+}
+document.querySelectorAll("#chips .chip").forEach(c => c.addEventListener("click", () => { filt = c.dataset.f; try { localStorage.setItem("ip-filt", filt); } catch (e) {} apply(); }));
+document.getElementById("sector").addEventListener("change", e => { sec = e.target.value; apply(); });
+apply();
+</script>
+</html>
