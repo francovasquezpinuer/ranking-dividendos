@@ -87,6 +87,42 @@ def uno(tk, cr, ahora):
     return tk, o
 
 
+TS_TYPES = ["annualNetIncomeCommonStockholders", "annualFreeCashFlow", "annualCashDividendsPaid"]
+TS_KEYS = {"annualNetIncomeCommonStockholders": "ni", "annualFreeCashFlow": "fcf", "annualCashDividendsPaid": "dp"}
+
+
+def fundamentos(tk):
+    """Utilidad neta, flujo de caja libre y dividendos pagados anuales (últimos ~5 años) desde Yahoo."""
+    sym = urllib.parse.quote(tk.replace(" ", "-") + ".SN")
+    p2 = int(time.time()); p1 = p2 - 7 * 365 * 86400
+    j = get_json(f"https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/{sym}"
+                 f"?symbol={sym}&type={','.join(TS_TYPES)}&period1={p1}&period2={p2}&merge=false&padTimeSeries=true")
+    out = {}
+    for res in (((j or {}).get("timeseries") or {}).get("result") or []):
+        t = ((res.get("meta") or {}).get("type") or [None])[0]
+        if t not in TS_KEYS: continue
+        pts = [[x["asOfDate"], (x.get("reportedValue") or {}).get("raw")] for x in (res.get(t) or []) if x and x.get("asOfDate")]
+        pts = [p for p in pts if p[1] is not None]
+        if pts: out[TS_KEYS[t]] = sorted(pts)[-5:]
+    return tk, out
+
+
+def actualizar_fundamentos(uni, ahora):
+    """Una vez al día: refresca site/fund.json (si Yahoo no responde para una acción, se conserva lo anterior)."""
+    ruta = os.path.join(SITE, "fund.json")
+    fund = json.load(open(ruta)) if os.path.exists(ruta) else {}
+    hoy = ahora.strftime("%Y-%m-%d")
+    if fund.get("_fecha") == hoy: return
+    with ThreadPoolExecutor(6) as ex:
+        res = dict(ex.map(lambda u: fundamentos(u[0]), uni))
+    n = 0
+    for tk, o in res.items():
+        if o: fund[tk] = o; n += 1
+    fund["_fecha"] = hoy
+    json.dump(fund, open(ruta, "w"), ensure_ascii=False, separators=(",", ":"))
+    print(f"fundamentos (utilidades, flujo de caja, dividendos pagados): {n}/{len(uni)}")
+
+
 def main():
     uni = json.load(open(os.path.join(RAIZ, "universo.json")))
     ahora = datetime.datetime.now(TZ)
@@ -100,12 +136,13 @@ def main():
         sys.exit("Muy pocas acciones con datos; no se actualiza el sitio (Yahoo puede estar bloqueando).")
     for v in data.values():  # si no llegó payout/deuda, se conserva el dato anterior
         if v[7] is None: v[6] = "keep"
+    actualizar_fundamentos(uni, ahora)
     delta = {"fecha": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"), "data": data}
     tmp = os.path.join(RAIZ, ".delta.json")
     json.dump(delta, open(tmp, "w"))
     r = subprocess.run([sys.executable, os.path.join(RAIZ, "scripts", "pipeline.py"), "--web",
                         "--page", os.path.join(SITE, "index.html"), "--ipsa", os.path.join(SITE, "ipsa.html"),
-                        "--delta", tmp, "--hist", os.path.join(SITE, "historial.json"), "--out", SITE])
+                        "--delta", tmp, "--fund", os.path.join(SITE, "fund.json"), "--hist", os.path.join(SITE, "historial.json"), "--out", SITE])
     os.remove(tmp)
     sys.exit(r.returncode)
 

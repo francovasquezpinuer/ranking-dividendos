@@ -113,7 +113,24 @@ def fixes(base, yrs):
 
 
 # ---------------------------------------------------------------- cálculos
-def compute(base):
+def fund_metrics(tk, f, fd, sec, po):
+    """Crecimiento de utilidades (pendiente ÷ promedio), cobertura del dividendo con caja y ROE."""
+    eg = cov = None
+    ni = [v for _, v in (f or {}).get("ni", [])]
+    if len(ni) >= 3:
+        m, b, _ = lin(list(range(len(ni))), ni); av = sum(ni) / len(ni)
+        eg = round(max(-1.0, min(1.0, m / av)), 4) if av > 0 else -1.0
+    fin = sec == "Banca" or tk in FINS
+    if fin:  # en bancos y financieras el flujo de caja no sirve: se usa utilidad ÷ dividendo (1 / payout)
+        cov = round(1 / po, 4) if po and po > 0 else None
+    else:
+        fcf = [v for _, v in (f or {}).get("fcf", [])][-2:]; dp = [abs(v) for _, v in (f or {}).get("dp", [])][-2:]
+        if fcf and dp and sum(dp) > 0: cov = round((sum(fcf) / len(fcf)) / (sum(dp) / len(dp)), 4)
+    roe = fd[4] if fd and len(fd) > 4 else None
+    return eg, cov, roe
+
+
+def compute(base, fund=None):
     rows = []
     for tk, b in base.items():
         v = [float(x) for x in b["c"]]
@@ -142,6 +159,7 @@ def compute(base):
                  dm=round(dm, 4), db=round(db, 4), dr=round(dr, 4), dav=round(dav, 4), rcv=round(rcv, 4), yt=round(yt, 4),
                  po=None if po is None else round(po, 4), last=last, s3=round(s3, 4), s4=round(s4, 4), s7=round(s7, 4), s1=round(s1, 4),
                  s8=s8, s6=0, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4)
+        r["eg"], r["cov"], r["roe"] = fund_metrics(tk, (fund or {}).get(tk), b["fd"], b["sec"], po)
         r["why"] = why_ing(r)
         r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_k"] = k
         rows.append(r)
@@ -193,20 +211,22 @@ def chw(r): return (r["yt"] or 0) + (max(-0.1, min(0.10, r["dm"] / r["dav"])) if
 
 
 def score_crec(r):
-    S = [16 * (r["pr"] + 1) / 2,
-         11 * clamp(r["g"], 0, .30),
-         11 * (r["dr"] + 1) / 2 if r["dav"] > 0 else 0,
-         11 * clamp(r["dm"] / r["dav"], 0, .20) if r["dav"] > 0 else 0,
-         pay_high(r["po"]),
-         11 * clamp(0.6 - r["rcv"], 0, 0.6),
-         11 * clamp(chw(r), .05, .17),
-         debt_pts(r),
-         7 * clamp(math.log10(max(r["_mv"], 1)), math.log10(5e6), 9)]
+    S = [16 * clamp(r["g"], 0, .25) * max(0.0, r["pr"]),                       # crecimiento firme del precio (tendencia × crecimiento)
+         8 * (r["dr"] + 1) / 2 if r["dav"] > 0 else 0,                            # tendencia dividendo
+         8 * clamp(r["dm"] / r["dav"], 0, .20) if r["dav"] > 0 else 0,            # crecimiento dividendo
+         pay_high(r["po"]),                                                     # % de pago sano (11)
+         8 * clamp(0.6 - r["rcv"], 0, 0.6),                                     # constancia
+         11 * clamp(chw(r), .05, .17),                                          # rendimiento + crecimiento
+         debt_pts(r),                                                           # deuda (11)
+         11 * clamp(r["eg"], 0, .15) if r.get("eg") is not None else 0,         # crecimiento de utilidades
+         8 * clamp(r["roe"], .05, .20) if r.get("roe") is not None else 0,      # ROE
+         4 * clamp(r["cov"], .8, 1.5) if r.get("cov") is not None else 0,       # cobertura del dividendo con caja
+         4 * clamp(math.log10(max(r["_mv"], 1)), math.log10(5e6), 9)]           # liquidez
     return S, sum(S)
 
 
-CRIT = ["Tendencia precio", "Crecimiento precio", "Tendencia dividendo", "Crecimiento dividendo", "% de pago sano", "Constancia",
-        "Rendimiento + crecimiento", "Deuda", "Liquidez"]
+CRIT = ["Crecimiento firme del precio", "Tendencia dividendo", "Crecimiento dividendo", "% de pago sano", "Constancia",
+        "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez"]
 
 
 def rank(rows):
@@ -400,12 +420,14 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--total", type=float, help="suma de control que devolvió delta.js (campo total)")
     ap.add_argument("--web", action="store_true", help="genera index.html/ipsa.html completos con informe y navegación")
+    ap.add_argument("--fund", help="fund.json con utilidades, flujo de caja y dividendos pagados")
     ap.add_argument("--hist", help="historial.json con el ranking de cada día (para comparar con el día hábil anterior)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     html = open(a.page, encoding="utf-8").read(); hip = open(a.ipsa, encoding="utf-8").read()
     prev_base = base_from_page(html)
-    prev_rows = compute({k: dict(v) for k, v in prev_base.items()})
+    fund = json.load(open(a.fund)) if a.fund and os.path.exists(a.fund) else {}
+    prev_rows = compute({k: dict(v) for k, v in prev_base.items()}, fund)
     prev_ok = rank(prev_rows); prev_rank = {r["tk"]: r["_rk"] for r in prev_ok}
     sin = []
     if a.full:
@@ -423,7 +445,7 @@ def main():
     now = ahora_cl(fecha)
     yrs = [now.year - 5 + i for i in range(5)]
     fixes(base, yrs)
-    rows = compute(base); ok = rank(rows)
+    rows = compute(base, fund); ok = rank(rows)
     hoy = now.strftime("%Y-%m-%d")
     hist = {}
     if a.hist and os.path.exists(a.hist):

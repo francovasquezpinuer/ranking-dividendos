@@ -127,7 +127,7 @@ th.why-h{text-align:left!important;cursor:default}
   <header>
     <div class="eyebrow">IPSA · 31 acciones · nov 2021 – oct 2026</div>
     <h1>Ranking del IPSA</h1>
-    <p>Las 31 acciones del IPSA, evaluadas con la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). <b>Crecimiento</b> premia precio y dividendo que crecen, con un % de pago alto y constante (la tendencia del precio pesa más, 16 pts; los otros siete criterios —incluidos rendimiento + crecimiento y deuda— 11 pts cada uno; la liquidez 7 pts); <b>Ingreso</b> premia el rendimiento actual.</p>
+    <p>Las 31 acciones del IPSA, evaluadas con la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). <b>Crecimiento</b> premia precio y dividendo que crecen, con un % de pago alto y constante (11 criterios: crecimiento firme del precio 16 pts; % de pago sano, rendimiento + crecimiento, deuda y crecimiento de utilidades 11 c/u; tendencia, crecimiento y constancia del dividendo y ROE 8 c/u; cobertura con caja y liquidez 4 c/u); <b>Ingreso</b> premia el rendimiento actual.</p>
   </header><!--INFORME--><style>
 #informe{display:grid;gap:14px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:18px 20px}
 #informe h2{margin:0;font-family:var(--display);font-weight:600;font-size:1.5rem}
@@ -222,15 +222,17 @@ ROWS.forEach(r => { const l = LIQ[r.tk] || [0,0]; r.mv = l[1]; r.av = l[0]; r.ti
 const liqPts = (r, mx) => mx * clamp(Math.log10(Math.max(r.mv,1)), Math.log10(5e6), 9);
 const MODES = {
   crec: {label: "Crecimiento", crit: [
-      ["c1","Tendencia precio",16,"r de la recta del precio (5 años): −1 = 0 pts; +1 = 16.", r => `r precio = ${sgn(r.pr,2)}`, r => 16*(r.pr+1)/2],
-      ["c2","Crecimiento precio",11,"Crecimiento anual del precio (ajuste exponencial): 0% o menos = 0; 30% o más = 11.", r => `Crecimiento anual ${pct(r.g)}`, r => 11*clamp(r.g,0,.30)],
-      ["c3","Tendencia dividendo",11,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 11.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.dav > 0 ? 11*(r.dr+1)/2 : 0],
-      ["c4","Crecimiento dividendo",11,"Pendiente de la recta ÷ dividendo promedio (cuánto sube por año): 0% o menos = 0; 20% o más = 11.", r => r.dav > 0 ? `Sube ${nf(r.dm/r.dav*100,0)}% del promedio por año` : "Sin dividendos", r => r.dav > 0 ? 11*clamp(r.dm/r.dav,0,.20) : 0],
+      ["c1","Crecimiento firme del precio",16,"Crecimiento anual del precio (ajuste exponencial, tope 25%) multiplicado por la r de su recta (0 si es negativa): premia que suba rápido y de forma pareja. 25% al año con r = 1 → 16 pts.", r => `Crece ${pct(r.g)} al año · r ${sgn(r.pr,2)}`, r => 16*clamp(r.g,0,.25)*Math.max(0,r.pr)],
+      ["c3","Tendencia dividendo",8,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 8.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.dav > 0 ? 8*(r.dr+1)/2 : 0],
+      ["c4","Crecimiento dividendo",8,"Pendiente de la recta ÷ dividendo promedio (cuánto sube por año): 0% o menos = 0; 20% o más = 8.", r => r.dav > 0 ? `Sube ${nf(r.dm/r.dav*100,0)}% del promedio por año` : "Sin dividendos", r => r.dav > 0 ? 8*clamp(r.dm/r.dav,0,.20) : 0],
       ["c5","% de pago sano",11,"Payout: 50–75% = 11 (reparte bastante y le queda margen para crecer); 40–50% o 75–90% = 8,25; 30–40% o 90–100% = 4,4; 20–30% = 1,65; menos de 20%, más de 100%, pérdidas o sin dato = 0.", r => r.po == null ? "Sin dato confiable" : `Payout ${nf(r.po*100,0)}%`, r => payHigh(r.po)],
-      ["c6","Constancia",11,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 11 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => 11*clamp(0.6-r.rcv,0,0.6)],
+      ["c6","Constancia",8,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 8 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => 8*clamp(0.6-r.rcv,0,0.6)],
       ["c8","Rendimiento + crecimiento",11,"Rendimiento de los últimos 12 meses + crecimiento anual del dividendo (pendiente ÷ promedio, limitado entre −10% y +10% para no premiar la recuperación post-pandemia): 5% o menos = 0; 17% o más = 11.", r => `Rinde ${nf((r.yt||0)*100,1)}% + crece ${nf(r.dav > 0 ? Math.max(-10, Math.min(10, r.dm/r.dav*100)) : 0,1)}% = ${nf(chw(r)*100,1)}%`, r => 11*clamp(chw(r),.05,.17)],
       ["c9","Deuda",11,"Empresas: deuda neta ÷ EBITDA; 1 vez o menos (o más caja que deuda) = 11; 5 veces o más = 0. Bancos, ILC y Quiñenco: patrimonio ÷ activos; 10% o más = 11; 6% o menos = 0. Sin EBITDA: deuda ÷ patrimonio; 50% o menos = 11; 150% o más = 0. EBITDA negativo o sin dato = 0.", r => debtLbl(r), r => debtPts(r,11)],
-      ["c7","Liquidez",7,"Monto transado en un día típico (mediana del último año), en escala logarítmica: $5 millones = 0 pts; $1.000 millones o más = 7.", r => `Día típico: $${mm(r.mv)} transados (liquidez ${r.tier})`, r => liqPts(r,7)]],
+      ["c10","Crecimiento de utilidades",11,"Pendiente de la recta de la utilidad neta anual (últimos 4–5 años) ÷ su promedio: 0% o menos = 0; 15% o más al año = 11. Utilidad promedio negativa o sin dato = 0.", r => r.eg == null ? "Sin dato" : (r.eg <= -1 ? "Utilidad promedio negativa" : `Utilidad ${r.eg >= 0 ? "sube" : "baja"} ${nf(Math.abs(r.eg)*100,0)}% del promedio por año`), r => r.eg == null ? 0 : 11*clamp(r.eg,0,.15)],
+      ["c11","ROE",8,"Rentabilidad sobre el patrimonio (utilidad ÷ patrimonio): 5% o menos = 0; 20% o más = 8.", r => r.roe == null ? "Sin dato" : `ROE ${nf(r.roe*100,1)}%`, r => r.roe == null ? 0 : 8*clamp(r.roe,.05,.20)],
+      ["c12","Cobertura con caja",4,"Flujo de caja libre ÷ dividendos pagados (promedio de los 2 últimos años): 0,8 veces o menos = 0; 1,5 veces o más = 4. En bancos, ILC y Quiñenco se usa utilidad ÷ dividendo (1 ÷ payout).", r => r.cov == null ? "Sin dato" : `La caja cubre ${nf(r.cov,1)} veces el dividendo`, r => r.cov == null ? 0 : 4*clamp(r.cov,.8,1.5)],
+      ["c7","Liquidez",4,"Monto transado en un día típico (mediana del último año), en escala logarítmica: $5 millones = 0 pts; $1.000 millones o más = 4.", r => `Día típico: $${mm(r.mv)} transados (liquidez ${r.tier})`, r => liqPts(r,4)]],
     why: r => {
       const f = [], c = [];
       if (r.g >= .25) f.push(`precio crece ${nf(r.g*100,0)}% al año`); else if (r.g < 0) c.push(`precio baja ${nf(-r.g*100,0)}% al año`); else if (r.g < .10) c.push(`precio crece poco (${nf(r.g*100,0)}% al año)`);
@@ -241,6 +243,9 @@ const MODES = {
         else if (r.dr >= .4) f.push(`dividendo al alza (r ${nf(r.dr,2)})`);
         else if (r.dr < -0.2) c.push(`dividendo a la baja (r ${nf(r.dr,2)})`); else c.push(`dividendo sin tendencia (r ${nf(r.dr,2)})`);
         if (r.rcv < .2) f.push("pagos muy parejos"); else if (r.rcv > .5) c.push("dividendo con saltos grandes"); }
+      if (r.eg != null) { if (r.eg >= .1) f.push(`utilidades crecen ${nf(r.eg*100,0)}% al año`); else if (r.eg < 0) c.push("utilidades a la baja"); }
+      if (r.roe != null) { if (r.roe >= .18) f.push(`ROE alto (${nf(r.roe*100,0)}%)`); else if (r.roe < .07) c.push(`ROE bajo (${nf(r.roe*100,0)}%)`); }
+      if (r.cov != null && r.dav > 0 && r.cov < .8) c.push("la caja no alcanza a cubrir el dividendo");
       if (r.po == null) { if (r.dav > 0) c.push("% de pago sin dato confiable"); }
       else if (r.po > 1) c.push(`paga más de lo que gana (${nf(r.po*100,0)}%)`);
       else if (r.po >= .9) c.push(`reparte casi todo (${nf(r.po*100,0)}%), poco margen para crecer`);
