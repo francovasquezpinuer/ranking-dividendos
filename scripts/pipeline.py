@@ -99,10 +99,7 @@ def base_from_full(full, universo):
 
 
 def fixes(base, yrs):
-    """Correcciones manuales conocidas de Yahoo."""
-    if "CHILE" in base and 2024 in yrs:
-        i = yrs.index(2024)
-        if base["CHILE"]["dy"][i] < 1: base["CHILE"]["dy"][i] = 8.08  # faltaba en Yahoo (verificado)
+    """Correcciones manuales conocidas de Yahoo (los datos verificados de datos/verificados.json se aplican después)."""
     if "SOQUICOM" in base:
         if (base["SOQUICOM"]["t"] or 0) > 1000: base["SOQUICOM"]["t"] = 25.23
         if base["SOQUICOM"]["p"] is not None and base["SOQUICOM"]["p"] > 2: base["SOQUICOM"]["p"] = None
@@ -112,11 +109,76 @@ def fixes(base, yrs):
         if b["p"] is not None and (b["p"] > 2): b["p"] = None
 
 
+def aplicar_verificados(base, verif, yrs):
+    """Reemplaza datos de Yahoo por datos verificados con fuentes primarias (dividendos regulares por año y payout)."""
+    for tk, ov in (verif or {}).items():
+        if tk.startswith("_") or tk not in base: continue
+        b = base[tk]
+        for y, val in (ov.get("div") or {}).items():
+            if int(y) in yrs: b["dy"][yrs.index(int(y))] = val
+        if "po" in ov: b["p"] = ov["po"]
+
+
+# ---------------------------------------------------------------- deuda: escalas por sector (según clasificadoras de riesgo)
+# (umbral con puntaje completo, umbral con puntaje cero) para deuda neta / EBITDA
+ESCALAS = {
+    "agua y eléctricas reguladas": (3.5, 6.0, {"AGUAS-A", "IAM", "ESVAL-C", "ESSBIO-C", "CGE", "ENELDXCH", "EDELMAG"}),
+    "generación eléctrica": (2.0, 3.5, {"ENELGXCH", "ENELCHILE", "COLBUN", "ECL", "ENELAM"}),
+    "malls": (4.5, 8.0, {"MALLPLAZA", "PARAUCO", "CENCOMALLS"}),
+    "retail": (2.0, 3.5, {"FALABELLA", "CENCOSUD", "RIPLEY", "SMU", "FORUS", "HITES", "TRICOT"}),
+    "bebidas y consumo": (1.5, 3.0, {"ANDINA-A", "ANDINA-B", "CCU", "EMBONOR-A", "EMBONOR-B", "CONCHATORO", "CAROZZI", "WATTS", "IANSA", "VSPT", "SANTA RITA", "EMILIANA"}),
+}
+ESCALA_GENERAL = (2.0, 5.0)
+HOLDINGS = {"QUINENCO", "ANTARCHILE", "ALMENDRAL", "BANVIDA", "INVERCAP", "MARINSA", "POTASIOS-A", "CIC", "MINERA"}
+
+
+def escala(tk):
+    for nombre, (lo, hi, tks) in ESCALAS.items():
+        if tk in tks: return nombre, lo, hi
+    return "general", ESCALA_GENERAL[0], ESCALA_GENERAL[1]
+
+
+def debt_info(r):
+    """Devuelve {t, x, lo, hi, dir, lbl}: dir 'down' = menos es mejor; 'up' = más es mejor; 'mid' = neutro."""
+    ov = r.get("_ovd")
+    nombre, lo, hi = escala(r["tk"])
+    if ov and ov.get("t") == "ltv":
+        x = ov["x"]; return {"t": "ltv", "x": x, "lo": .20, "hi": .45, "dir": "down", "lbl": f"Holding: deuda neta = {nf(x * 100, 0)}% del valor (dato verificado; ≤20% = máximo)"}
+    if ov and ov.get("t") == "nd":
+        x = ov["x"]; return {"t": "nd", "x": x, "lo": lo, "hi": hi, "dir": "down", "lbl": f"Deuda neta = {nf(x, 1)} veces el EBITDA (dato verificado; escala {nombre}: ≤{nf(lo, 1)}x máximo, ≥{nf(hi, 1)}x cero)"}
+    d = r["_fd"]
+    if r["_sec2"] == "Banca" or r["sec"] == "Banca":
+        if d and d[3] and d[4] and d[3] > 0 and d[4] > 0:
+            x = d[3] / d[4]; return {"t": "cap", "x": x, "lo": .06, "hi": .10, "dir": "up", "lbl": f"Patrimonio = {nf(x * 100, 1)}% de los activos (≥10% máximo, ≤6% cero)"}
+        return {"t": "na", "lbl": "Sin dato"}
+    if r["tk"] in HOLDINGS or r["tk"] in FINS:
+        return {"t": "hold", "dir": "mid", "lbl": "Holding: la deuda consolidada no es comparable (puntaje neutro)"}
+    if not d: return {"t": "na", "lbl": "Sin dato"}
+    cash, debt, eb, roa, roe, de = d
+    if debt is not None and cash is not None and debt <= cash:
+        return {"t": "nd", "x": -1, "lo": lo, "hi": hi, "dir": "down", "lbl": "Tiene más caja que deuda"}
+    if eb is None:
+        if de is not None: return {"t": "de", "x": de / 100, "lo": .5, "hi": 1.5, "dir": "down", "lbl": f"Deuda = {nf(de, 0)}% del patrimonio (≤50% máximo, ≥150% cero)"}
+        return {"t": "nd", "x": -1, "lo": lo, "hi": hi, "dir": "down", "lbl": "Sin deuda"} if debt == 0 else {"t": "na", "lbl": "Sin dato"}
+    if eb <= 0: return {"t": "neg", "lbl": "EBITDA negativo"}
+    x = (debt - cash) / eb
+    return {"t": "nd", "x": x, "lo": lo, "hi": hi, "dir": "down", "lbl": f"Deuda neta = {nf(x, 1)} veces el EBITDA (escala {nombre}: ≤{nf(lo, 1)}x máximo, ≥{nf(hi, 1)}x cero)"}
+
+
+def debt_pts(r, mx=11):
+    i = r.get("dx") or debt_info(r)
+    if i.get("dir") == "down": return mx * (1 - clamp(i["x"], i["lo"], i["hi"]))
+    if i.get("dir") == "up": return mx * clamp(i["x"], i["lo"], i["hi"])
+    if i.get("dir") == "mid": return mx / 2
+    return 0
+
+
 # ---------------------------------------------------------------- cálculos
-def fund_metrics(tk, f, fd, sec, po):
+def fund_metrics(tk, f, fd, sec, po, ov=None):
     """Crecimiento de utilidades (pendiente ÷ promedio), cobertura del dividendo con caja y ROE."""
     eg = cov = None
     ni = [v for _, v in (f or {}).get("ni", [])]
+    if ov and "ni" in ov: ni = [v for _, v in (ov["ni"] or [])]
     if len(ni) >= 3:
         m, b, _ = lin(list(range(len(ni))), ni); av = sum(ni) / len(ni)
         eg = round(max(-1.0, min(1.0, m / av)), 4) if av > 0 else -1.0
@@ -127,12 +189,14 @@ def fund_metrics(tk, f, fd, sec, po):
         fcf = [v for _, v in (f or {}).get("fcf", [])][-2:]; dp = [abs(v) for _, v in (f or {}).get("dp", [])][-2:]
         if fcf and dp and sum(dp) > 0: cov = round((sum(fcf) / len(fcf)) / (sum(dp) / len(dp)), 4)
     roe = fd[4] if fd and len(fd) > 4 else None
+    if ov and "roe" in ov: roe = ov["roe"]
     return eg, cov, roe
 
 
-def compute(base, fund=None):
+def compute(base, fund=None, verif=None):
     rows = []
     for tk, b in base.items():
+        ov = (verif or {}).get(tk) or {}
         v = [float(x) for x in b["c"]]
         s = max(0, 2022 * 12 + 10 - b["m0"]) if tk == "LTM" else 0  # LATAM desde nov-2022 (reestructuración)
         xs = list(range(s, len(v))); ys = [v[i] for i in xs]
@@ -149,62 +213,22 @@ def compute(base, fund=None):
         last = v[-1]; yt = (b["t"] or 0) / last if last else 0
         sv = v[s:]; flat = sum(1 for i in range(1, len(sv)) if sv[i] == sv[i - 1]) / (len(sv) - 1)
         po = b["p"]
-        s3 = 30 * (dr + 1) / 2 if dav > 0 else 0
-        s4 = 25 * (pr + 1) / 2
-        s7 = 15 * clamp(0.6 - rcv, 0, 0.6)
-        s1 = 15 * min(max(yt, 0) / 0.07, 1)
-        s8 = 0 if po is None or po <= 0 else 10 if .40 <= po <= .75 else 7 if (.30 <= po < .40 or .75 < po <= .90) else 4 if (.20 <= po < .30 or .90 < po <= 1) else 0
         sec = SECTOR_FIX.get(tk, b["sec"])
         r = dict(tk=tk, sec=b["sec"], name=b["name"], ipsa=b["ipsa"], pm=round(pm, 4), pb=round(pb, 4), pr=round(pr, 4), g=round(g, 4),
                  dm=round(dm, 4), db=round(db, 4), dr=round(dr, 4), dav=round(dav, 4), rcv=round(rcv, 4), yt=round(yt, 4),
-                 po=None if po is None else round(po, 4), last=last, s3=round(s3, 4), s4=round(s4, 4), s7=round(s7, 4), s1=round(s1, 4),
-                 s8=s8, s6=0, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4)
-        r["eg"], r["cov"], r["roe"] = fund_metrics(tk, (fund or {}).get(tk), b["fd"], b["sec"], po)
-        r["why"] = why_ing(r)
-        r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_k"] = k
+                 po=None if po is None else round(po, 4), last=last, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4)
+        r["eg"], r["cov"], r["roe"] = fund_metrics(tk, (fund or {}).get(tk), b["fd"], b["sec"], po, ov)
+        r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_k"] = k; r["_ovd"] = ov.get("deuda")
+        r["dx"] = debt_info(r)
+        if ov.get("nota"):
+            r["vf"] = ov["nota"]
+            if ov.get("fuente"): r["vfu"] = ov["fuente"]
         rows.append(r)
     return rows
 
 
-def why_ing(r):
-    f, c = [], []
-    if r["pr"] >= .9: f.append(f"precio muy firme al alza (r {nf(r['pr'], 2)})")
-    elif r["pr"] >= .6: f.append(f"precio al alza (r {nf(r['pr'], 2)})")
-    elif r["pr"] < 0: c.append(f"precio a la baja (r {nf(r['pr'], 2)})")
-    else: c.append(f"precio sin tendencia clara (r {nf(r['pr'], 2)})")
-    if r["dav"] <= 0: c.append("no pagó dividendos")
-    else:
-        if r["dr"] >= .8: f.append(f"dividendo que sube de forma firme (r {nf(r['dr'], 2)})")
-        elif r["dr"] >= .4: f.append(f"dividendo al alza (r {nf(r['dr'], 2)})")
-        elif r["dr"] < -.2: c.append(f"dividendo a la baja (r {nf(r['dr'], 2)})")
-        else: c.append(f"dividendo sin tendencia (r {nf(r['dr'], 2)})")
-        if r["rcv"] < .2: f.append("pagos muy parejos")
-        elif r["rcv"] > .5: c.append("dividendo con saltos grandes entre años")
-    if r["yt"] >= .06: f.append(f"rinde alto ({nf(r['yt'] * 100, 1)}%)")
-    elif r["dav"] > 0 and r["yt"] < .02: c.append(f"rinde poco ({nf(r['yt'] * 100, 1)}%)")
-    if r["po"] is not None and r["po"] > 1: c.append(f"paga más de lo que gana ({nf(r['po'] * 100, 0)}%)")
-    return (("A favor: " + ", ".join(f[:3]) + ".") if f else "") + ((" " if f else "") + "En contra: " + ", ".join(c[:3]) + "." if c else "")
-
-
-# --- puntaje modo Crecimiento (idéntico al de la página)
-def pay_high(p): return 11 * (0 if p is None or p <= 0 or p > 1 else .4 if p >= .90 else .75 if p > .75 else 1 if p >= .50 else .75 if p >= .40 else .4 if p >= .30 else .15 if p >= .20 else 0)
-
-
-def debt_info(r):
-    d = r["_fd"]
-    if not d: return ("na", None)
-    cash, debt, eb, roa, roe, de = d
-    if r["_sec2"] == "Banca" or r["sec"] == "Banca" or r["tk"] in FINS:
-        return ("cap", roa / roe) if roa and roe and roa > 0 and roe > 0 else ("na", None)
-    if debt is not None and cash is not None and debt <= cash: return ("nd", -1)
-    if eb is None: return ("de", de / 100) if de is not None else (("nd", -1) if debt == 0 else ("na", None))
-    if eb <= 0: return ("neg", None)
-    return ("nd", (debt - cash) / eb)
-
-
-def debt_pts(r, mx=11):
-    t, x = debt_info(r)
-    return mx * clamp(x, .06, .10) if t == "cap" else mx * (1 - clamp(x, 1, 5)) if t == "nd" else mx * (1 - clamp(x, .5, 1.5)) if t == "de" else 0
+# --- puntaje (idéntico al de la página)
+def pay_high(p): return 11 * (0 if p is None or p <= 0 or p > 1 else .4 if p > .90 else .75 if p > .75 else 1 if p >= .40 else .5 if p >= .30 else .15 if p >= .20 else 0)
 
 
 def chw(r): return (r["yt"] or 0) + (max(-0.1, min(0.10, r["dm"] / r["dav"])) if r["dav"] > 0 else 0)
@@ -420,6 +444,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--total", type=float, help="suma de control que devolvió delta.js (campo total)")
     ap.add_argument("--web", action="store_true", help="genera index.html/ipsa.html completos con informe y navegación")
+    ap.add_argument("--verif", help="datos/verificados.json: datos confirmados con fuentes primarias (prioridad sobre Yahoo)")
     ap.add_argument("--fund", help="fund.json con utilidades, flujo de caja y dividendos pagados")
     ap.add_argument("--hist", help="historial.json con el ranking de cada día (para comparar con el día hábil anterior)")
     a = ap.parse_args()
@@ -427,7 +452,8 @@ def main():
     html = open(a.page, encoding="utf-8").read(); hip = open(a.ipsa, encoding="utf-8").read()
     prev_base = base_from_page(html)
     fund = json.load(open(a.fund)) if a.fund and os.path.exists(a.fund) else {}
-    prev_rows = compute({k: dict(v) for k, v in prev_base.items()}, fund)
+    verif = json.load(open(a.verif)) if a.verif and os.path.exists(a.verif) else {}
+    prev_rows = compute({k: dict(v) for k, v in prev_base.items()}, fund, verif)
     prev_ok = rank(prev_rows); prev_rank = {r["tk"]: r["_rk"] for r in prev_ok}
     sin = []
     if a.full:
@@ -445,7 +471,8 @@ def main():
     now = ahora_cl(fecha)
     yrs = [now.year - 5 + i for i in range(5)]
     fixes(base, yrs)
-    rows = compute(base, fund); ok = rank(rows)
+    aplicar_verificados(base, verif, yrs)
+    rows = compute(base, fund, verif); ok = rank(rows)
     hoy = now.strftime("%Y-%m-%d")
     hist = {}
     if a.hist and os.path.exists(a.hist):

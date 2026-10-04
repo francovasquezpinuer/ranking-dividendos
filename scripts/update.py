@@ -142,7 +142,7 @@ def main():
     json.dump(delta, open(tmp, "w"))
     r = subprocess.run([sys.executable, os.path.join(RAIZ, "scripts", "pipeline.py"), "--web",
                         "--page", os.path.join(SITE, "index.html"), "--ipsa", os.path.join(SITE, "ipsa.html"),
-                        "--delta", tmp, "--fund", os.path.join(SITE, "fund.json"), "--hist", os.path.join(SITE, "historial.json"), "--out", SITE])
+                        "--delta", tmp, "--fund", os.path.join(SITE, "fund.json"), "--verif", os.path.join(RAIZ, "datos", "verificados.json"), "--hist", os.path.join(SITE, "historial.json"), "--out", SITE])
     os.remove(tmp)
     sys.exit(r.returncode)
 
