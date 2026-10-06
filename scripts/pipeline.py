@@ -443,6 +443,13 @@ VIVO_CSS = """<style>
 #vivo .up{color:var(--up)} #vivo .down{color:var(--down)}
 #vivo svg{width:100%;height:30px;display:block}
 #vivo small{color:var(--muted)}
+@media (min-width:1100px){
+  .wrap:has(#vivo:not([hidden])){grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px}
+  .wrap:has(#vivo:not([hidden]))>*{grid-column:1/-1}
+  .wrap:has(#vivo:not([hidden]))>header{grid-column:1;align-self:center}
+  .wrap:has(#vivo:not([hidden]))>#vivo{grid-column:2;align-self:start;padding:14px 16px}
+  #vivo .strip{grid-auto-columns:176px}
+}
 header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #informe .cand p{text-align:left}
 </style>"""
