@@ -1,4 +1,4 @@
-## Ranking de dividendos — 6 de octubre de 2026 a las 14:28
+## Ranking de dividendos — 6 de octubre de 2026 a las 15:00
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -7,7 +7,7 @@
 | 1 | LIPIGAS | 88,5 | ▲1 | +14% (sobre su tendencia) | baja |
 | 2 | ANDINA-B (IPSA) | 88,5 | ▼1 | +0% (cerca de su tendencia) | alta |
 | 3 | ANDINA-A | 85,4 | = | +1% (cerca de su tendencia) | baja |
-| 4 | ILC (IPSA) | 83,4 | = | +5% (cerca de su tendencia) | media |
+| 4 | ILC (IPSA) | 83,4 | = | +6% (cerca de su tendencia) | media |
 | 5 | SCHWAGER | 81,8 | = | +58% (muy sobre su tendencia) | baja |
 | 6 | ENELGXCH | 81,4 | = | −14% (bajo su tendencia) | baja |
 | 7 | PARAUCO (IPSA) | 81,3 | = | −1% (cerca de su tendencia) | alta |
