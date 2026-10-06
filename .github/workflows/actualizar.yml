@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: actualizar
+  group: pages
   cancel-in-progress: false
 
 jobs:
@@ -35,6 +35,8 @@ jobs:
           git add site
           git commit -m "Actualización $(TZ=America/Santiago date '+%Y-%m-%d %H:%M')" || echo "Sin cambios"
           git push
+      - name: Precios del día (panel en vivo)
+        run: python3 scripts/precios.py || echo "Sin precios del día"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

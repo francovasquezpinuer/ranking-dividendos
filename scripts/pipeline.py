@@ -267,7 +267,7 @@ def label(m): return f"{MESES[m % 12]} {m // 12}"
 WEB_HEAD = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
 
 
-def patch_page(html, rows, liq, debt, m0, yrs, fecha_txt, informe_block=None, nav=None):
+def patch_page(html, rows, liq, debt, m0, yrs, fecha_txt, informe_block=None, nav=None, vivo=""):
     html = replace_js(html, "ROWS", rows)
     if "const LIQ = " in html: html = replace_js(html, "LIQ", liq)
     if "const DEBT = " in html: html = replace_js(html, "DEBT", debt)
@@ -281,8 +281,9 @@ def patch_page(html, rows, liq, debt, m0, yrs, fecha_txt, informe_block=None, na
         if not html.lstrip().lower().startswith("<!doctype"): html = WEB_HEAD + html + "</html>"
         html = re.sub(r"<!--NAV-->.*?<!--/NAV-->", "", html, flags=re.S)
         html = re.sub(r"<!--INFORME-->.*?<!--/INFORME-->", "", html, flags=re.S)
+        html = re.sub(r"<!--VIVO-->.*?<!--/VIVO-->", "", html, flags=re.S)
         html = html.replace('<div class="wrap">', '<div class="wrap">' + (nav or ""), 1)
-        html = html.replace("</header>", "</header>" + informe_block, 1)
+        html = html.replace("</header>", "</header>" + vivo + informe_block, 1)
     return html
 
 
@@ -417,6 +418,115 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
     return "".join(H)
 
 
+# ---------------------------------------------------------------- panel "Mercado en vivo"
+VIVO_CSS = """<style>
+#vivo{display:grid;gap:12px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:16px 20px;min-width:0}
+#vivo[hidden]{display:none}
+#vivo .vh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+#vivo h2{margin:0;font-family:var(--display);font-weight:600;font-size:1.5rem}
+#vivo .st{font-size:13px;color:var(--fg2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#vivo .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+#vivo .dot.on{background:var(--up);animation:vpulse 2s infinite}
+@keyframes vpulse{50%{opacity:.35}}
+#vivo .idx{font-family:var(--mono);font-size:13px;color:var(--fg)}
+#vivo .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--rule)}
+#vivo .tabs button{font:inherit;font-size:13px;background:none;border:0;border-bottom:2px solid transparent;padding:6px 8px;color:var(--fg2);cursor:pointer;margin-bottom:-1px;white-space:nowrap}
+#vivo .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--fit);font-weight:600}
+#vivo .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(168px,1fr);gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+#vivo .q{border:1px solid var(--rule);border-radius:10px;padding:9px 11px;background:var(--bg);display:grid;gap:2px;font-size:12.5px;min-width:0}
+#vivo .q .t{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+#vivo .q b{font-size:14px}
+#vivo .q .vk{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+#vivo .q .px{font-family:var(--mono);font-size:15px;color:var(--fg)}
+#vivo .q .r{display:flex;justify-content:space-between;gap:6px;color:var(--fg2);white-space:nowrap}
+#vivo .q .r span:last-child{font-family:var(--mono)}
+#vivo .up{color:var(--up)} #vivo .down{color:var(--down)}
+#vivo svg{width:100%;height:30px;display:block}
+#vivo small{color:var(--muted)}
+</style>"""
+
+VIVO_JS = r"""<script>
+(function(){
+  const box = document.getElementById("vivo"); if (!box) return;
+  const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de tendencia]
+  const byTk = Object.fromEntries(META.map(m => [m[0], m]));
+  let Q = null, tab = "top";
+  const nf = (v, d) => v.toLocaleString("es-CL", {minimumFractionDigits: d, maximumFractionDigits: d});
+  const pct = x => (x >= 0 ? "+" : "−") + nf(Math.abs(x) * 100, 2) + "%";
+  const pxf = v => nf(v, v >= 1000 ? 0 : v >= 10 ? 1 : 2);
+  const mm = v => v == null ? "s/d" : v >= 1e9 ? "$" + nf(v / 1e9, 1) + " mil mill." : v >= 1e6 ? "$" + nf(v / 1e6, 0) + " mill." : "$" + nf(v / 1e3, 0) + " mil";
+  const chg = q => q[1] ? q[0] / q[1] - 1 : 0;
+  function abierta(){
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", {timeZone: "America/Santiago", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23"}).formatToParts(new Date()).map(x => [x.type, x.value]));
+    const m = +p.hour * 60 + +p.minute;
+    return !["Sat", "Sun"].includes(p.weekday) && m >= 570 && m < 960;
+  }
+  function spark(s, prev, up){
+    if (!s || s.length < 2) return "";
+    const lo = Math.min(...s, prev || Infinity), hi = Math.max(...s, prev || -Infinity), r = hi - lo || 1;
+    const y = v => (28 - (v - lo) / r * 26).toFixed(1);
+    const pts = s.map((v, i) => (i / (s.length - 1) * 100).toFixed(1) + "," + y(v)).join(" ");
+    const base = prev ? `<line x1="0" x2="100" y1="${y(prev)}" y2="${y(prev)}" stroke="var(--muted)" stroke-dasharray="2 2" stroke-width="1" vector-effect="non-scaling-stroke"/>` : "";
+    return `<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">${base}<polyline points="${pts}" fill="none" stroke="var(${up ? "--up" : "--down"})" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+  }
+  function lista(){
+    const con = META.filter(m => Q.q[m[0]]);
+    const rk = con.filter(m => m[1]).sort((a, b) => a[1] - b[1]);
+    const dev = m => m[3] ? Q.q[m[0]][0] / m[3] - 1 : null;
+    if (tab === "top") return rk.slice(0, 12);
+    if (tab === "cand") return rk.slice(0, 12).filter(m => dev(m) != null && dev(m) <= 0.05).slice(0, 5);
+    if (tab === "alzas") return con.slice().sort((a, b) => chg(Q.q[b[0]]) - chg(Q.q[a[0]])).slice(0, 12);
+    if (tab === "bajas") return con.slice().sort((a, b) => chg(Q.q[a[0]]) - chg(Q.q[b[0]])).slice(0, 12);
+    return con.slice().sort((a, b) => (Q.q[b[0]][2] || 0) - (Q.q[a[0]][2] || 0)).slice(0, 12);
+  }
+  function pinta(){
+    if (!Q) return;
+    const ix = Q.q["^IPSA"], on = abierta();
+    const t = new Date(Math.max(...Object.values(Q.q).map(q => q[3] || 0)) * 1000);
+    const hora = t.toLocaleString("es-CL", {timeZone: "America/Santiago", weekday: "short", hour: "2-digit", minute: "2-digit"});
+    box.querySelector(".st").innerHTML = `<span><span class="dot${on ? " on" : ""}"></span> ${on ? "Bolsa abierta" : "Bolsa cerrada"} · último dato ${hora}</span>` +
+      (ix ? ` · <span class="idx">IPSA ${nf(ix[0], 2)} <span class="${chg(ix) >= 0 ? "up" : "down"}">${pct(chg(ix))}</span></span>` : "");
+    const L = lista();
+    box.querySelector(".strip").innerHTML = L.length ? L.map(m => {
+      const q = Q.q[m[0]], c = chg(q), d = m[3] ? q[0] / m[3] - 1 : null;
+      return `<div class="q"><div class="t"><b>${m[0]}</b><span class="vk">${m[1] ? "#" + m[1] : ""}</span></div><small>${m[1] ? nf(m[2], 1) + " pts" : "sin puesto en el ranking"}</small>` +
+        `<div class="t"><span class="px">$${pxf(q[0])}</span><span class="${c >= 0 ? "up" : "down"}">${pct(c)}</span></div>` +
+        spark(q[4], q[1], c >= 0) +
+        `<div class="r"><span>Monto</span><span>${mm(q[2])}</span></div>` +
+        (d != null ? `<div class="r"><span>vs. tendencia</span><span class="${d <= 0.05 ? "up" : d > 0.10 ? "down" : ""}">${Math.round(d * 100) === 0 ? "0%" : (d > 0 ? "+" : "−") + Math.abs(Math.round(d * 100)) + "%"}</span></div>` : "") + `</div>`;
+    }).join("") : `<p class="sub" style="margin:0">Ninguna en este momento.</p>`;
+  }
+  box.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+    tab = b.dataset.k; box.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b)); pinta();
+  });
+  async function carga(){
+    try {
+      const r = await fetch("precios.json?" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw 0;
+      Q = await r.json(); box.hidden = false; pinta();
+    } catch (e) {}
+  }
+  carga(); setInterval(carga, 60000);
+})();
+</script>"""
+
+
+def vivo_html(rows, ok):
+    """Panel con precios del día (lee precios.json en el navegador). rows: todas las filas de la página; ok: su ranking."""
+    pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
+    meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None)] for r in rows]
+    tabs = [("top", "Top del ranking"), ("cand", "Candidatas ahora"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
+    return ("<!--VIVO-->" + VIVO_CSS +
+            f"<section id=\"vivo\" hidden data-meta='{esc(json.dumps(meta, ensure_ascii=False))}'>"
+            '<div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div>'
+            '<div class="tabs" role="tablist">' + "".join(f'<button role="tab" data-k="{k}" aria-selected="{"true" if k == "top" else "false"}">{t}</button>' for k, t in tabs) + "</div>"
+            '<div class="strip"></div>'
+            "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
+            "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
+            "“Candidatas ahora” aplica la misma regla del informe con ese precio.</small>"
+            "</section>" + VIVO_JS + "<!--/VIVO-->")
+
+
 def nav_html(active):
     a = lambda href, txt, k: f'<a href="{href}" class="{"on" if k == active else ""}">{txt}</a>'
     return '<!--NAV--><nav class="topnav">' + a("index.html", "Bolsa de Santiago", "bolsa") + a("ipsa.html", "Solo IPSA", "ipsa") + "</nav><!--/NAV-->"
@@ -493,8 +603,8 @@ def main():
             if prev_base.get(tk, {}).get("ipsa"): prev_ip[tk] = len(prev_ip) + 1
         b1 = informe_html(ok, prev_rank, ftxt, sin, "Informe del día — Bolsa de Santiago")
         b2 = informe_html(ok_ip, prev_ip, ftxt, sin, "Informe del día — IPSA")
-        open(os.path.join(a.out, "index.html"), "w", encoding="utf-8").write(patch_page(html, out_rows, liq, debt, m0, yrs, ftxt, b1, nav_html("bolsa")))
-        open(os.path.join(a.out, "ipsa.html"), "w", encoding="utf-8").write(patch_page(hip, ip_rows, liq, debt, m0, yrs, ftxt, b2, nav_html("ipsa")))
+        open(os.path.join(a.out, "index.html"), "w", encoding="utf-8").write(patch_page(html, out_rows, liq, debt, m0, yrs, ftxt, b1, nav_html("bolsa"), vivo_html(rows, ok)))
+        open(os.path.join(a.out, "ipsa.html"), "w", encoding="utf-8").write(patch_page(hip, ip_rows, liq, debt, m0, yrs, ftxt, b2, nav_html("ipsa"), vivo_html([r for r in rows if r["ipsa"]], ok_ip)))
     else:
         open(os.path.join(a.out, "ranking-bolsa.html"), "w", encoding="utf-8").write(patch_page(html, out_rows, liq, debt, m0, yrs, ftxt))
         open(os.path.join(a.out, "ranking-ipsa.html"), "w", encoding="utf-8").write(patch_page(hip, ip_rows, liq, debt, m0, yrs, ftxt))
