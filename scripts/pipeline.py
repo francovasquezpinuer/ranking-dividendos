@@ -290,6 +290,40 @@ def patch_page(html, rows, liq, debt, m0, yrs, fecha_txt, informe_block=None, na
 def clean(r): return {k: v for k, v in r.items() if not k.startswith("_")}
 
 
+# ---------------------------------------------------------------- orden de compra entre las candidatas
+SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4]
+FUERTE = ["el precio crece firme", "el dividendo tiene tendencia al alza", "el dividendo viene creciendo", "reparte un % sano de sus utilidades",
+          "paga dividendos con constancia", "buen rendimiento más crecimiento", "deuda acotada para su sector", "utilidades creciendo",
+          "ROE alto", "el dividendo está cubierto con caja", "se transa mucho"]
+DEBIL = ["el precio no crece firme", "el dividendo no muestra tendencia clara", "el dividendo crece poco", "reparte un % de utilidades fuera del rango sano",
+         "dividendo irregular", "rendimiento bajo", "deuda alta para su sector", "utilidades que no crecen",
+         "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco"]
+
+
+def prioridad(T, dev, mv):
+    """Orden de compra: puntaje + premio por estar bajo su tendencia (hasta +10 pts con 20% de descuento) − 3 si se transa poco."""
+    return T + 50 * min(max(-dev, 0), 0.20) - (3 if mv < 1e8 else 0)
+
+
+def ordenar_cand(cand):
+    return sorted(cand, key=lambda r: -prioridad(r["_T"], r["_dev"], r["_mv"]))
+
+
+def razones(r):
+    """(por qué comprarla, ojo) a partir de los criterios del puntaje."""
+    S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(11)]
+    pq = []
+    if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su tendencia de 5 años (precio con descuento)")
+    else: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
+    fuertes = sorted([i for i in range(10) if frac[i] >= 0.85], key=lambda i: -SMAX[i])[:3]
+    if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
+    pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
+    debiles = sorted([i for i in range(11) if frac[i] < 0.4], key=lambda i: frac[i] * SMAX[i] - SMAX[i])[:2]
+    ojo = [DEBIL[i] for i in debiles]
+    if r["_mv"] < 1e8 and DEBIL[10] not in ojo: ojo.append(DEBIL[10])
+    return "; ".join(pq), ", ".join(ojo)
+
+
 # ---------------------------------------------------------------- informe
 def tramo(dev):
     if dev <= -0.05: return "bajo su tendencia"
@@ -327,12 +361,13 @@ def informe(ok, prev_rank, fecha_txt, sin_datos):
     for r in ok[:10]:
         L.append(f"| {r['_rk']} | {r['tk']}{' (IPSA)' if r['ipsa'] else ''} | {nf(r['_T'], 1)} | {cambio(prev_rank, r, r['_rk'])} | {sgn_pct(r['_dev'])} ({tramo(r['_dev'])}) | {tier(r['_mv'])} |")
     L.append("")
-    L.append("**Candidatas para comprar hoy según tus criterios** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años):")
+    L.append("**Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; "
+             "el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):")
     if cand:
-        for r in cand:
-            L.append(f"- **{r['tk']}** ({nf(r['_T'], 1)} pts, puesto {r['_rk']}): precio {sgn_pct(r['_dev'])} vs. su tendencia; "
-                     f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses; payout {('s/d' if r['po'] is None else nf(r['po'] * 100, 0) + '%')}"
-                     + ("; ojo: liquidez baja" if r["_mv"] < 1e8 else "") + ".")
+        for i, r in enumerate(ordenar_cand(cand)):
+            pq, ojo = razones(r)
+            L.append(f"{i + 1}. **{r['tk']}** ({nf(r['_T'], 1)} pts, puesto {r['_rk']}). Por qué: {pq}."
+                     + (f" Ojo: {ojo}." if ojo else ""))
     else:
         L.append("- Ninguna hoy: las mejor rankeadas están sobre su tendencia de precio.")
     if caras:
@@ -355,9 +390,14 @@ INF_CSS = """<style>
 #informe{display:grid;gap:14px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:18px 20px}
 #informe h2{margin:0;font-family:var(--display);font-weight:600;font-size:1.5rem}
 #informe .sub{color:var(--fg2);font-size:13px;margin:0}
-#informe .cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+#informe .cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 #informe .cand{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg)}
 #informe .cand b{font-size:15px}
+#informe .cand .ord{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+#informe .cand:first-child{border-color:var(--fg2)}
+#informe .cand:first-child .ord{color:var(--fit)}
+#informe .cand .pq b{font-size:12.5px;color:var(--fg)}
+#informe .cand p.pq{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #informe .cand .pts{display:block;font-family:var(--mono);font-size:12.5px;color:var(--fg2);margin-top:2px}
 #informe .cand p{margin:6px 0 0;font-size:12.5px;color:var(--fg2);line-height:1.45}
 #informe table{border-collapse:collapse;width:100%;font-size:13px}
@@ -385,14 +425,17 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
     caras = [r for r in top if r["_dev"] > 0.10]
     H = ["<!--INFORME-->", INF_CSS, '<section id="informe">',
          f'<div><h2>{esc(titulo)}</h2><p class="sub">Actualizado el {esc(fecha_txt)} (hora de Chile) · se actualiza solo varias veces al día hábil</p></div>',
-         '<div><b>Candidatas para comprar hoy según tus criterios</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años.</p></div>']
+         '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años. '
+         'El orden parte del puntaje, suma un premio por estar bajo su tendencia (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
     if cand:
         H.append('<div class="cands">')
-        for r in cand:
-            H.append(f'<div class="cand"><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]}</span>'
-                     f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia<br>Rinde {nf(r["yt"] * 100, 1)}% en 12 meses<br>'
-                     f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
-                     + ('<br><span class="warn">Ojo: se transa poco</span>' if r["_mv"] < 1e8 else "") + "</p></div>")
+        for i, r in enumerate(ordenar_cand(cand)):
+            pq, ojo = razones(r)
+            H.append(f'<div class="cand"><span class="ord">{i + 1}ª opción</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
+                     f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
+                     f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}</p>'
+                     f'<p class="pq"><b>Por qué:</b> {esc(pq[0].upper() + pq[1:])}.</p>'
+                     + (f'<p class="pq"><span class="warn">Ojo:</span> {esc(ojo)}.</p>' if ojo else "") + "</div>")
         H.append("</div>")
     else:
         H.append('<p class="sub">Ninguna hoy: las mejor rankeadas están más de 5% sobre su tendencia de precio.</p>')
@@ -451,7 +494,7 @@ VIVO_CSS = """<style>
   #vivo .strip{grid-auto-columns:176px}
 }
 header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
-#informe .cand p{text-align:left}
+#informe .cand p:not(.pq){text-align:left}
 </style>"""
 
 VIVO_JS = r"""<script>
@@ -483,7 +526,7 @@ VIVO_JS = r"""<script>
     const rk = con.filter(m => m[1]).sort((a, b) => a[1] - b[1]);
     const dev = m => m[3] ? Q.q[m[0]][0] / m[3] - 1 : null;
     if (tab === "top") return rk.slice(0, 12);
-    if (tab === "cand") return rk.slice(0, 12).filter(m => dev(m) != null && dev(m) <= 0.05).slice(0, 5);
+    if (tab === "cand") { const pr = m => m[2] + 50 * Math.min(Math.max(-dev(m), 0), 0.2) - (m[4] ? 3 : 0); return rk.slice(0, 12).filter(m => dev(m) != null && dev(m) <= 0.05).slice(0, 5).sort((a, b) => pr(b) - pr(a)); }
     if (tab === "alzas") return con.slice().sort((a, b) => chg(Q.q[b[0]]) - chg(Q.q[a[0]])).slice(0, 12);
     if (tab === "bajas") return con.slice().sort((a, b) => chg(Q.q[a[0]]) - chg(Q.q[b[0]])).slice(0, 12);
     return con.slice().sort((a, b) => (Q.q[b[0]][2] || 0) - (Q.q[a[0]][2] || 0)).slice(0, 12);
@@ -496,9 +539,9 @@ VIVO_JS = r"""<script>
     box.querySelector(".st").innerHTML = `<span><span class="dot${on ? " on" : ""}"></span> ${on ? "Bolsa abierta" : "Bolsa cerrada"} · último dato ${hora}</span>` +
       (ix ? ` · <span class="idx">IPSA ${nf(ix[0], 2)} <span class="${chg(ix) >= 0 ? "up" : "down"}">${pct(chg(ix))}</span></span>` : "");
     const L = lista();
-    box.querySelector(".strip").innerHTML = L.length ? L.map(m => {
+    box.querySelector(".strip").innerHTML = L.length ? L.map((m, i) => {
       const q = Q.q[m[0]], c = chg(q), d = m[3] ? q[0] / m[3] - 1 : null;
-      return `<div class="q"><div class="t"><b>${m[0]}</b><span class="vk">${m[1] ? "#" + m[1] : ""}</span></div><small>${m[1] ? nf(m[2], 1) + " pts" : "sin puesto en el ranking"}</small>` +
+      return `<div class="q"><div class="t"><b>${m[0]}</b><span class="vk">${tab === "cand" ? (i + 1) + "ª" : m[1] ? "#" + m[1] : ""}</span></div><small>${m[1] ? nf(m[2], 1) + " pts" + (tab === "cand" ? " · #" + m[1] + " del ranking" : "") : "sin puesto en el ranking"}</small>` +
         `<div class="t"><span class="px">$${pxf(q[0])}</span><span class="${c >= 0 ? "up" : "down"}">${pct(c)}</span></div>` +
         spark(q[4], q[1], c >= 0) +
         `<div class="r"><span>Monto</span><span>${mm(q[2])}</span></div>` +
@@ -523,7 +566,7 @@ VIVO_JS = r"""<script>
 def vivo_html(rows, ok):
     """Panel con precios del día (lee precios.json en el navegador). rows: todas las filas de la página; ok: su ranking."""
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
-    meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None)] for r in rows]
+    meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None), 1 if r["_mv"] < 1e8 else 0] for r in rows]
     tabs = [("cand", "Candidatas ahora"), ("top", "Top del ranking"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
     return ("<!--VIVO-->" + VIVO_CSS +
             f"<section id=\"vivo\" hidden data-meta='{esc(json.dumps(meta, ensure_ascii=False))}'>"
@@ -532,7 +575,7 @@ def vivo_html(rows, ok):
             '<div class="strip"></div>'
             "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
             "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
-            "“Candidatas ahora” aplica la misma regla del informe con ese precio.</small>"
+            "“Candidatas ahora” aplica la misma regla y el mismo orden de compra del informe con ese precio.</small>"
             "</section>" + VIVO_JS + "<!--/VIVO-->")
 
 
