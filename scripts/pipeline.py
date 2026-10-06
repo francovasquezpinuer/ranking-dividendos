@@ -443,6 +443,8 @@ VIVO_CSS = """<style>
 #vivo .up{color:var(--up)} #vivo .down{color:var(--down)}
 #vivo svg{width:100%;height:30px;display:block}
 #vivo small{color:var(--muted)}
+header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+#informe .cand p{text-align:left}
 </style>"""
 
 VIVO_JS = r"""<script>
@@ -450,7 +452,7 @@ VIVO_JS = r"""<script>
   const box = document.getElementById("vivo"); if (!box) return;
   const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de tendencia]
   const byTk = Object.fromEntries(META.map(m => [m[0], m]));
-  let Q = null, tab = "top";
+  let Q = null, tab = "cand";
   const nf = (v, d) => v.toLocaleString("es-CL", {minimumFractionDigits: d, maximumFractionDigits: d});
   const pct = x => (x >= 0 ? "+" : "−") + nf(Math.abs(x) * 100, 2) + "%";
   const pxf = v => nf(v, v >= 1000 ? 0 : v >= 10 ? 1 : 2);
@@ -515,11 +517,11 @@ def vivo_html(rows, ok):
     """Panel con precios del día (lee precios.json en el navegador). rows: todas las filas de la página; ok: su ranking."""
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
     meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None)] for r in rows]
-    tabs = [("top", "Top del ranking"), ("cand", "Candidatas ahora"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
+    tabs = [("cand", "Candidatas ahora"), ("top", "Top del ranking"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
     return ("<!--VIVO-->" + VIVO_CSS +
             f"<section id=\"vivo\" hidden data-meta='{esc(json.dumps(meta, ensure_ascii=False))}'>"
             '<div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div>'
-            '<div class="tabs" role="tablist">' + "".join(f'<button role="tab" data-k="{k}" aria-selected="{"true" if k == "top" else "false"}">{t}</button>' for k, t in tabs) + "</div>"
+            '<div class="tabs" role="tablist">' + "".join(f'<button role="tab" data-k="{k}" aria-selected="{"true" if k == "cand" else "false"}">{t}</button>' for k, t in tabs) + "</div>"
             '<div class="strip"></div>'
             "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
             "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
