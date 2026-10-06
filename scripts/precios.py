@@ -38,7 +38,8 @@ def main():
     crumb()  # deja la cookie de Yahoo
     with ThreadPoolExecutor(8) as ex:
         q = {tk: o for tk, o in ex.map(cotiza, uni) if o}
-    print(f"precios en vivo: {len(q)}/{len(uni)}")
+    ej = q.get("CENCOMALLS") or next(iter(q.values()), [0, 0, 0, 0, []])
+    print(f"::notice::Precios en vivo: {len(q)}/{len(uni)} acciones (ej. CENCOMALLS {ej[0]} vs {ej[1]} al cierre anterior, {len(ej[4])} puntos intradía)")
     if len(q) < len(uni) * 0.5:
         sys.exit("Muy pocas cotizaciones; se conserva el archivo anterior.")
     out = {"t": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "q": q}
