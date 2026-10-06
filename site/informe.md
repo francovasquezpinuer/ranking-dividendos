@@ -1,4 +1,4 @@
-## Ranking de dividendos — 6 de octubre de 2026 a las 15:00
+## Ranking de dividendos — 6 de octubre de 2026 a las 15:17
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
