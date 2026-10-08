@@ -581,7 +581,7 @@ def vivo_html(rows, ok):
 
 def nav_html(active):
     a = lambda href, txt, k: f'<a href="{href}" class="{"on" if k == active else ""}">{txt}</a>'
-    return '<!--NAV--><nav class="topnav">' + a("index.html", "Bolsa de Santiago", "bolsa") + a("ipsa.html", "Solo IPSA", "ipsa") + "</nav><!--/NAV-->"
+    return '<!--NAV--><nav class="topnav">' + a("index.html", "Bolsa de Santiago", "bolsa") + a("ipsa.html", "Solo IPSA", "ipsa") + a("cartera.html", "Mi cartera", "cartera") + "</nav><!--/NAV-->"
 
 
 def ahora_cl(iso):
