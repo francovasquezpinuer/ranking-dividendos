@@ -128,7 +128,7 @@ th.why-h{text-align:left!important;cursor:default}
   <header>
     <div class="eyebrow">Bolsa de Santiago · 110 acciones · nov 2021 – oct 2026 · con requisito de liquidez</div>
     <h1>Ranking de la Bolsa de Santiago</h1>
-    <p>Todas las acciones con datos en Yahoo Finance, evaluadas con datos de Yahoo Finance corregidos con fuentes oficiales (CMF y las propias empresas) en las acciones marcadas con ✓ en su ficha, la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). El puntaje premia dividendos sanos y crecientes, respaldados por utilidades, con precio al alza y deuda acotada para su sector (11 criterios: crecimiento firme del precio 16 pts; % de pago sano, rendimiento + crecimiento, deuda y crecimiento de utilidades 11 c/u; tendencia, crecimiento y constancia del dividendo y ROE 8 c/u; cobertura con caja y liquidez 4 c/u).</p>
+    <p>Todas las acciones con datos en Yahoo Finance, evaluadas con datos de Yahoo Finance corregidos con fuentes oficiales (CMF y las propias empresas) en las acciones marcadas con ✓ en su ficha, la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). El puntaje premia dividendos sanos y crecientes, respaldados por utilidades, con precio al alza y deuda acotada para su sector (12 criterios, máximo 104 pts: crecimiento firme del precio 16 pts; % de pago sano, rendimiento + crecimiento, deuda y crecimiento de utilidades 11 c/u; tendencia, crecimiento y constancia del dividendo y ROE 8 c/u; cobertura con caja, liquidez y perspectivas del negocio 4 c/u).</p>
   </header><!--VIVO--><style>
 #vivo{display:grid;gap:12px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:16px 20px;min-width:0}
 #vivo[hidden]{display:none}
@@ -335,6 +335,7 @@ const MODES = {
       ["c10","Crecimiento de utilidades",11,"Pendiente de la recta de la utilidad neta anual (últimos 4–5 años) ÷ su promedio: 0% o menos = 0; 15% o más al año = 11. Utilidad promedio negativa o sin dato = 0.", r => r.eg == null ? "Sin dato" : (r.eg <= -1 ? "Utilidad promedio negativa" : `Utilidad ${r.eg >= 0 ? "sube" : "baja"} ${nf(Math.abs(r.eg)*100,0)}% del promedio por año`), r => r.eg == null ? 0 : 11*clamp(r.eg,0,.15)],
       ["c11","ROE",8,"Rentabilidad sobre el patrimonio (utilidad ÷ patrimonio): 5% o menos = 0; 20% o más = 8.", r => r.roe == null ? "Sin dato" : `ROE ${nf(r.roe*100,1)}%`, r => r.roe == null ? 0 : 8*clamp(r.roe,.05,.20)],
       ["c12","Cobertura con caja",4,"Flujo de caja libre ÷ dividendos pagados (promedio de los 2 últimos años): 0,8 veces o menos = 0; 1,5 veces o más = 4. En bancos, ILC y Quiñenco se usa utilidad ÷ dividendo (1 ÷ payout).", r => r.cov == null ? "Sin dato" : `La caja cubre ${nf(r.cov,1)} veces el dividendo`, r => r.cov == null ? 0 : 4*clamp(r.cov,.8,1.5)],
+      ["c13","Perspectivas del negocio",4,"Nota de 1 a 5 sobre el futuro del negocio a 5–10 años: ventaja competitiva, tendencia de su industria y riesgos conocidos (concesiones, regulación, deuda, reestructuraciones), basada en resultados y noticias 2025–2026 (revisión de octubre de 2026). Nota 1 = 0 pts; 5 = 4 pts. Sin evaluación = 3 (neutral).", r => r.fut ? `Nota ${r.fut}/5: ${r.futr}` : "Sin evaluación específica (neutral)", r => r.fut ? r.fut - 1 : 2],
       ["c7","Liquidez",4,"Monto transado en un día típico (mediana del último año), en escala logarítmica: $5 millones = 0 pts; $1.000 millones o más = 4.", r => `Día típico: $${mm(r.mv)} transados (liquidez ${r.tier})`, r => liqPts(r,4)]],
     why: r => {
       const f = [], c = [];
@@ -356,6 +357,7 @@ const MODES = {
       else if (r.po < .3) c.push(`reparte solo ${nf(r.po*100,0)}% de su utilidad`);
       { const ch = chw(r); if (ch >= .15) f.push(`rinde + crece ${nf(ch*100,0)}% al año`); else if (ch < .09 && r.dav > 0) c.push(`rendimiento + crecimiento bajo (${nf(ch*100,0)}%)`); }
       { const i = debtInfo(r), q = debtPts(r,1); if (i.dir && i.dir !== "mid" && q >= .85) f.push("deuda baja para su sector"); else if ((i.dir && i.dir !== "mid" && q <= .25) || i.t === "neg") c.push(i.t === "cap" ? "capital ajustado" : "deuda alta para su sector"); }
+      if (r.fut >= 4) f.push("buenas perspectivas para el negocio"); else if (r.fut && r.fut <= 2) c.push("el negocio enfrenta riesgos a futuro");
       if (r.mv >= 1e9) f.unshift("liquidez alta"); else if (r.mv < 1e8) c.unshift(`liquidez baja ($${mm(r.mv)} en un día típico)`);
       return (f.length ? "A favor: " + f.slice(0,3).join(", ") + "." : "") + (c.length ? (f.length ? " " : "") + "En contra: " + c.slice(0,3).join(", ") + "." : "");
     }}
@@ -471,7 +473,7 @@ function renderScatter(){
   const pts = liq.filter(visible);
   const W = 1000, H = 420, P = {l:48, r:16, t:16, b:44};
   const X = v => P.l + (Math.min(Math.max(Math.log10(Math.max(v,1)), LX0), LX1) - LX0)/(LX1 - LX0)*(W - P.l - P.r);
-  const ys = pts.map(r => r.tot), lo = Math.max(0, Math.floor((Math.min(...ys, 100) - 5)/10)*10), hi = 100;
+  const ys = pts.map(r => r.tot), lo = Math.max(0, Math.floor((Math.min(...ys, 104) - 5)/10)*10), hi = 104;
   const Y = v => P.t + (hi - v)/(hi - lo)*(H - P.t - P.b);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Puntaje versus liquidez">`;
   s += `<rect x="${X(1e6)}" y="${P.t}" width="${X(5e6)-X(1e6)}" height="${H-P.t-P.b}" fill="var(--down)" fill-opacity=".08"/><text x="${(X(1e6)+X(5e6))/2}" y="${P.t+14}" text-anchor="middle">bajo el mínimo</text>`;
@@ -504,7 +506,7 @@ const cards = {};
 function fillScore(r){
   const card = cards[r.tk]; if (!card) return;
   card.querySelector(".rk").textContent = r.rank;
-  card.querySelector(".scorebox").innerHTML = `<div class="hd"><span>Puntaje · ${MODES[mode].label}</span><span>Total <b>${nf(r.tot,1)}</b> / 100</span></div>` +
+  card.querySelector(".scorebox").innerHTML = `<div class="hd"><span>Puntaje · ${MODES[mode].label}</span><span>Total <b>${nf(r.tot,1)}</b> / 104</span></div>` +
     CRIT.map(([k, l, mx]) => `<div class="srow" title="${SRC(k)(r)}"><span>${l}</span><span class="trk"><i style="width:${r[k]/mx*100}%"></i></span><span>${nf(r[k],1)} / ${mx}</span></div>`).join("");
   card.querySelector(".whyc").textContent = r.why;
 }
@@ -518,7 +520,7 @@ function makeCard(r, target){
     </div>
     ${liqStrip(r)}
     ${r.liq ? `<div class="scorebox"></div>` : ""}
-    <p class="whyc">${r.why}</p>${r.vf ? `<p class="vfc">${r.vfu ? "✓ " : "⚠ "}${r.vf}${r.vfu ? ` · <a href="${r.vfu}" target="_blank" rel="noopener">fuente</a>` : ""}</p>` : ""}<div class="tip" hidden></div>`;
+    <p class="whyc">${r.why}</p>${r.fut ? `<p class="vfc">Perspectivas del negocio: <b>${r.fut}/5</b>. ${r.futr}${r.futf ? ` · <a href="${r.futf}" target="_blank" rel="noopener">fuente</a>` : ""}</p>` : ""}${r.vf ? `<p class="vfc">${r.vfu ? "✓ " : "⚠ "}${r.vf}${r.vfu ? ` · <a href="${r.vfu}" target="_blank" rel="noopener">fuente</a>` : ""}</p>` : ""}<div class="tip" hidden></div>`;
   target.appendChild(card); cards[r.tk] = card; if (r.liq) fillScore(r);
   const tip = card.querySelector(".tip");
   const place = (x, y) => { const cb = card.getBoundingClientRect(); let left = x - cb.left; left = Math.max(90, Math.min(cb.width - 90, left)); tip.style.left = left + "px"; tip.style.top = (y - cb.top - 8) + "px"; tip.hidden = false; };

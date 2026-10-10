@@ -245,12 +245,21 @@ def score_crec(r):
          11 * clamp(r["eg"], 0, .15) if r.get("eg") is not None else 0,         # crecimiento de utilidades
          8 * clamp(r["roe"], .05, .20) if r.get("roe") is not None else 0,      # ROE
          4 * clamp(r["cov"], .8, 1.5) if r.get("cov") is not None else 0,       # cobertura del dividendo con caja
-         4 * clamp(math.log10(max(r["_mv"], 1)), math.log10(5e6), 9)]           # liquidez
+         4 * clamp(math.log10(max(r["_mv"], 1)), math.log10(5e6), 9),          # liquidez
+         (r["fut"] - 1) if r.get("fut") else 2]                                 # perspectivas del negocio (1-5 → 0-4; sin evaluación = 2)
     return S, sum(S)
 
 
 CRIT = ["Crecimiento firme del precio", "Tendencia dividendo", "Crecimiento dividendo", "% de pago sano", "Constancia",
-        "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez"]
+        "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez", "Perspectivas del negocio"]
+
+
+def aplicar_persp(rows, persp):
+    """Agrega a cada fila la nota de perspectivas del negocio (fut 1-5), su razón (futr) y la fuente (futf)."""
+    for r in rows:
+        p = persp.get(r["tk"]) if not r["tk"].startswith("_") else None
+        r["fut"], r["futr"], r["futf"] = (p["n"], p["r"], p.get("f")) if p else (None, None, None)
+    return rows
 
 
 def rank(rows):
@@ -291,13 +300,13 @@ def clean(r): return {k: v for k, v in r.items() if not k.startswith("_")}
 
 
 # ---------------------------------------------------------------- orden de compra entre las candidatas
-SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4]
+SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4, 4]
 FUERTE = ["el precio crece firme", "el dividendo tiene tendencia al alza", "el dividendo viene creciendo", "reparte un % sano de sus utilidades",
           "paga dividendos con constancia", "buen rendimiento más crecimiento", "deuda acotada para su sector", "utilidades creciendo",
-          "ROE alto", "el dividendo está cubierto con caja", "se transa mucho"]
+          "ROE alto", "el dividendo está cubierto con caja", "se transa mucho", "buenas perspectivas para el negocio"]
 DEBIL = ["el precio no crece firme", "el dividendo no muestra tendencia clara", "el dividendo crece poco", "reparte un % de utilidades fuera del rango sano",
          "dividendo irregular", "rendimiento bajo", "deuda alta para su sector", "utilidades que no crecen",
-         "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco"]
+         "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco", "el negocio enfrenta riesgos a futuro"]
 
 
 def prioridad(T, dev, mv):
@@ -311,14 +320,14 @@ def ordenar_cand(cand):
 
 def razones(r):
     """(por qué comprarla, ojo) a partir de los criterios del puntaje."""
-    S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(11)]
+    S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(len(SMAX))]
     pq = []
     if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su tendencia de 5 años (precio con descuento)")
     else: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
-    fuertes = sorted([i for i in range(10) if frac[i] >= 0.85], key=lambda i: -SMAX[i])[:3]
+    fuertes = sorted([i for i in list(range(10)) + [11] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
     if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
     pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
-    debiles = sorted([i for i in range(11) if frac[i] < 0.4], key=lambda i: frac[i] * SMAX[i] - SMAX[i])[:2]
+    debiles = sorted([i for i in range(len(SMAX)) if frac[i] < 0.4], key=lambda i: frac[i] * SMAX[i] - SMAX[i])[:2]
     ojo = [DEBIL[i] for i in debiles]
     if r["_mv"] < 1e8 and DEBIL[10] not in ojo: ojo.append(DEBIL[10])
     return "; ".join(pq), ", ".join(ojo)
@@ -433,7 +442,8 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
             pq, ojo = razones(r)
             H.append(f'<div class="cand"><span class="ord">{i + 1}ª opción</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
                      f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
-                     f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}</p>'
+                     f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
+                     + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "") + '</p>'
                      f'<p class="pq"><b>Por qué:</b> {esc(pq[0].upper() + pq[1:])}.</p>'
                      + (f'<p class="pq"><span class="warn">Ojo:</span> {esc(ojo)}.</p>' if ojo else "") + "</div>")
         H.append("</div>")
@@ -608,6 +618,8 @@ def main():
     ap.add_argument("--web", action="store_true", help="genera index.html/ipsa.html completos con informe y navegación")
     ap.add_argument("--verif", help="datos/verificados.json: datos confirmados con fuentes primarias (prioridad sobre Yahoo)")
     ap.add_argument("--fund", help="fund.json con utilidades, flujo de caja y dividendos pagados")
+    ap.add_argument("--persp", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "datos", "perspectivas.json"),
+                    help="datos/perspectivas.json: nota 1-5 de las perspectivas del negocio, con razón y fuente")
     ap.add_argument("--hist", help="historial.json con el ranking de cada día (para comparar con el día hábil anterior)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
@@ -615,7 +627,8 @@ def main():
     prev_base = base_from_page(html)
     fund = json.load(open(a.fund)) if a.fund and os.path.exists(a.fund) else {}
     verif = json.load(open(a.verif)) if a.verif and os.path.exists(a.verif) else {}
-    prev_rows = compute({k: dict(v) for k, v in prev_base.items()}, fund, verif)
+    persp = json.load(open(a.persp, encoding="utf-8")) if a.persp and os.path.exists(a.persp) else {}
+    prev_rows = aplicar_persp(compute({k: dict(v) for k, v in prev_base.items()}, fund, verif), persp)
     prev_ok = rank(prev_rows); prev_rank = {r["tk"]: r["_rk"] for r in prev_ok}
     sin = []
     if a.full:
@@ -634,7 +647,7 @@ def main():
     yrs = [now.year - 5 + i for i in range(5)]
     fixes(base, yrs)
     aplicar_verificados(base, verif, yrs)
-    rows = compute(base, fund, verif); ok = rank(rows)
+    rows = aplicar_persp(compute(base, fund, verif), persp); ok = rank(rows)
     hoy = now.strftime("%Y-%m-%d")
     hist = {}
     if a.hist and os.path.exists(a.hist):
