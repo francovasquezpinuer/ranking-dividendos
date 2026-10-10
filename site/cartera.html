@@ -79,28 +79,36 @@ small,.muted{color:var(--muted)}
 .hb .row{display:contents}
 .hb .row:hover .k{text-decoration:underline}
 /* tabla */
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:7px 8px;border-bottom:1px solid var(--grid);white-space:nowrap;text-align:right}
-th{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--surface)}
-th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
-td.n{font-family:var(--mono)}
+.tw{min-width:0}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--grid);text-align:right;vertical-align:top}
+th{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:500;line-height:1.3;vertical-align:bottom}
+td{font-family:var(--mono);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td:first-child{font-family:var(--body)}
+td small{display:block;font-size:11px;color:var(--muted);font-family:var(--body);white-space:nowrap}
+td small .up,td small .down{font-family:var(--mono)}
 tfoot td{font-weight:600;border-top:1px solid var(--rule);border-bottom:0}
 th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
-.col .b.a{background:var(--div);opacity:.5}
-.ley{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg2)}
-.ley i{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--div);margin-right:5px;vertical-align:-1px}
-.ley i.a{opacity:.5}
-.lista{display:grid;gap:0;font-size:13px}
-.lista .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--grid)}
-.lista .it:last-child{border-bottom:0}
-.lista .it b{font-weight:600}
-.lista .it .m{font-family:var(--mono);text-align:right}
-.lista .it small{grid-column:1/-1}
-.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--fg2);margin-left:6px;white-space:nowrap}
-.tag.ok{border-color:var(--upbar);color:var(--up)}
-#evo svg{display:block;width:100%;height:240px;overflow:visible}
-#evo text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.ordenar{display:none;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--fg2)}
+.ordenar select,.ordenar button{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg)}
+.ordenar button{cursor:pointer}
+@media (max-width:1180px){
+  .ordenar{display:flex}
+  #tabla thead{display:none}
+  #tabla,#tabla tbody,#tabla tfoot{display:grid;gap:10px}
+  #tabla tbody{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  #tabla tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg)}
+  #tabla td{border:0;padding:0;text-align:left;white-space:normal}
+  #tabla td::before{content:attr(data-l);display:block;white-space:nowrap;font-family:var(--body);font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  #tabla td:first-child{grid-column:1/-1;font-size:14px;display:flex;gap:8px;align-items:baseline}
+  #tabla td:first-child::before{display:none}
+  #tabla td:first-child small{display:inline}
+  #tabla tfoot tr{border-color:var(--fg2)}
+  #tabla tfoot td.vacio{display:none}
+}
+/* textos justificados */
+.card p.sub,.nota,.lista small,.kpi .s{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #tip{position:fixed;z-index:9;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12.5px;line-height:1.45;padding:7px 10px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .1s}
 #tip b{font-weight:600}
 #tip.on{opacity:1}
@@ -166,7 +174,8 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
       </section>
     </div>
     <section class="card">
-      <div><h2>Detalle por acción</h2><p class="sub">Toca un encabezado para ordenar. “Puesto” es la posición de la acción hoy en el ranking de la Bolsa con tus criterios (— si no cumple el requisito de liquidez).</p></div>
+      <div><h2>Detalle por acción</h2><p class="sub">Toca un encabezado (o usa “Ordenar por”) para ordenar. Bajo el precio de hoy va su variación respecto de tu precio de compra. “Puesto” es la posición de la acción hoy en el ranking de la Bolsa con tus criterios (— si no cumple el requisito de liquidez).</p></div>
+      <div class="ordenar"><label>Ordenar por <select id="ord"></select></label><button type="button" id="dir"></button></div>
       <div class="tw"><table id="tabla"></table></div>
     </section>
     <p class="nota"><small id="pie"></small></p>
@@ -423,34 +432,37 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
       tipf: i => `<b>${esc(i.k)}</b><br>${$m(i.x.v)} · ${pu(i.v)} de la cartera<br>${i.x.tks.join(", ")}`});
     if (!completo) $("#secSub").textContent += " Si una acción no tiene precio del día, se usa lo que pagaste.";
 
-    // tabla
+    // tabla (compacta: entra en la pantalla; en pantallas angostas cada acción es una tarjeta)
+    const sec = p => p.sec === "Commoditie" ? "Commodities" : p.sec;
+    const col = (v, f) => v != null ? `<span class="${v >= 0 ? "up" : "down"}">${f(v)}</span>` : "s/d";
     const C = [
-      ["tk", "Acción", p => esc(p.tk), p => p.tk],
-      ["sec", "Sector", p => esc(p.sec === "Commoditie" ? "Commodities" : p.sec), p => p.sec],
-      ["anio", "Compra", p => p.anio, p => p.anio],
-      ["cant", "Cantidad", p => nf(p.cant), p => p.cant],
-      ["pu", "P. compra", p => $p(p.pu), p => p.pu],
-      ["total", "Costo total", p => $f(p.total), p => p.total],
-      ["px", "Precio hoy", p => p.px != null ? $p(p.px) : "s/d", p => p.px ?? -1],
-      ["valor", "Valor hoy", p => p.valor != null ? $f(p.valor) : "s/d", p => p.valor ?? -1],
-      ["cap", "Var. precio", p => p.cap != null ? `<span class="${p.cap >= 0 ? "up" : "down"}">${pc(p.cap)}</span>` : "s/d", p => p.cap ?? -9],
-      ...anios.map(a => ["d" + a, "Div. " + a, p => p.dy[a] ? $f(p.dy[a]) : "—", p => p.dy[a] || 0]),
-      ["ry", `Rend. ${aY}`, p => pu((p.dy[aY] || 0) / p.total), p => (p.dy[aY] || 0) / p.total],
-      ["tot", "Retorno total", p => p.tot != null ? `<span class="${p.tot >= 0 ? "up" : "down"}">${pc(p.tot)}</span>` : "s/d", p => p.tot ?? -9],
-      ["rk", "Puesto", p => p.rk ? "#" + p.rk : "—", p => p.rk ?? 999],
+      ["tk", "Acción", p => `<b>${esc(p.tk)}</b><small>${esc(sec(p))} · ${p.anio}</small>`, p => p.tk, () => "<b>Total</b>"],
+      ["cant", "Cantidad", p => nf(p.cant), p => p.cant, () => ""],
+      ["pu", "Precio de compra", p => $p(p.pu), p => p.pu, () => ""],
+      ["total", "Costo total", p => $f(p.total), p => p.total, () => $f(costo)],
+      ["cap", "Precio hoy", p => p.px != null ? `${$p(p.px)}<small>${col(p.cap, pc)}</small>` : "s/d", p => p.cap ?? -9, () => ""],
+      ["valor", "Valor hoy", p => p.valor != null ? $f(p.valor) : "s/d", p => p.valor ?? -1, () => conPx.length ? `${$f(valor)}<small>${col(capTot / costoPx, pc)}</small>` : ""],
+      ...anios.map(a => ["d" + a, "Dividendos " + a, p => p.dy[a] ? $f(p.dy[a]) : "—", p => p.dy[a] || 0, () => $f(P.reduce((s, p) => s + (p.dy[a] || 0), 0))]),
+      ["ry", `Rendimiento ${aY}`, p => pu((p.dy[aY] || 0) / p.total), p => (p.dy[aY] || 0) / p.total, () => pu(divY / costo)],
+      ["tot", "Retorno total", p => col(p.tot, pc), p => p.tot ?? -9, () => conPx.length ? col((capTot + divTot) / costo, pc) : ""],
+      ["rk", "Puesto ranking", p => p.rk ? "#" + p.rk : "—", p => p.rk ?? 999, () => ""],
     ];
-    let orden = "dd", asc = false;
-    const pie = `<tfoot><tr><td>Total</td><td></td><td></td><td></td><td></td><td class="n">${$f(costo)}</td><td></td><td class="n">${conPx.length ? $f(valor) : "s/d"}</td><td class="n">${conPx.length ? pc(capTot / costoPx) : ""}</td>` +
-      anios.map(a => `<td class="n">${$f(P.reduce((s, p) => s + (p.dy[a] || 0), 0))}</td>`).join("") +
-      `<td class="n">${pu(divY / costo)}</td><td class="n">${conPx.length ? pc((capTot + divTot) / costo) : ""}</td><td></td></tr></tfoot>`;
+    const CORTO = {"Precio de compra": "P. compra", "Costo total": "Costo", "Puesto ranking": "Puesto", "Retorno total": "Retorno"};
+    const corto = t => CORTO[t] || t.replace("Dividendos ", "Div. ").replace("Rendimiento ", "Rend. ");
+    let orden = "d" + aY, asc = false;
+    $("#ord").innerHTML = C.map(x => `<option value="${x[0]}">${x[1]}</option>`).join("");
     function tabla(){
-      const c = C.find(x => x[0] === orden) || C.find(x => x[0] === "d" + aY);
+      const c = C.find(x => x[0] === orden) || C[0];
       const rows = P.slice().sort((a, b) => { const x = c[3](a), y = c[3](b); return (x > y ? 1 : x < y ? -1 : 0) * (asc ? 1 : -1); });
+      $("#ord").value = c[0]; $("#dir").textContent = asc ? "▲ menor a mayor" : "▼ mayor a menor";
       $("#tabla").innerHTML = `<thead><tr>${C.map(x => `<th data-k="${x[0]}">${x[1]}${x[0] === c[0] ? (asc ? " ▲" : " ▼") : ""}</th>`).join("")}</tr></thead><tbody>` +
-        rows.map(p => `<tr>${C.map((x, i) => `<td${i > 2 ? ' class="n"' : ""}>${x[2](p)}</td>`).join("")}</tr>`).join("") + "</tbody>" + pie;
-      $("#tabla").querySelectorAll("th[data-k]").forEach(th => th.onclick = () => { asc = orden === th.dataset.k ? !asc : false; orden = th.dataset.k; tabla(); });
+        rows.map(p => `<tr>${C.map(x => `<td data-l="${corto(x[1])}">${x[2](p)}</td>`).join("")}</tr>`).join("") + "</tbody>" +
+        `<tfoot><tr>${C.map(x => { const v = x[4](); return `<td data-l="${corto(x[1])}"${v ? "" : ' class="vacio"'}>${v}</td>`; }).join("")}</tr></tfoot>`;
+      $("#tabla").querySelectorAll("th[data-k]").forEach(th => th.onclick = () => { asc = orden === th.dataset.k ? !asc : th.dataset.k === "tk"; orden = th.dataset.k; tabla(); });
     }
-    orden = "d" + aY; tabla();
+    $("#ord").onchange = () => { orden = $("#ord").value; asc = orden === "tk" || orden === "rk"; tabla(); };
+    $("#dir").onclick = () => { asc = !asc; tabla(); };
+    tabla();
     $("#pie").textContent = `Compras y dividendos hasta el ${fDia(corte)}: tu Excel (${d.fuente}). Después de esa fecha, los dividendos se agregan solos con los datos de Yahoo Finance (dividendo por acción × tus acciones); las compras nuevas hay que agregarlas. Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). ` +
       "Los dividendos son los montos que anotaste como recibidos. Análisis informativo; no es una recomendación de un asesor financiero.";
   }
