@@ -1,28 +1,30 @@
-## Ranking de dividendos — 10 de octubre de 2026 a las 18:27
+## Ranking de dividendos — 10 de octubre de 2026 a las 18:56
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
 | # | Acción | Puntaje | Cambio | Precio vs tendencia | Liquidez |
 |---|---|---|---|---|---|
-| 1 | ANDINA-B (IPSA) | 88,7 | = | −4% (cerca de su tendencia) | alta |
-| 2 | LIPIGAS | 88,4 | = | +16% (sobre su tendencia) | baja |
-| 3 | ANDINA-A | 85,3 | = | +2% (cerca de su tendencia) | baja |
-| 4 | ILC (IPSA) | 83,3 | = | +7% (cerca de su tendencia) | media |
-| 5 | SCHWAGER | 81,7 | = | +61% (muy sobre su tendencia) | baja |
-| 6 | PARAUCO (IPSA) | 81,3 | = | −3% (cerca de su tendencia) | alta |
-| 7 | ENELGXCH | 81,2 | = | −11% (bajo su tendencia) | baja |
-| 8 | CENCOMALLS (IPSA) | 80,6 | = | −14% (bajo su tendencia) | media |
-| 9 | ZOFRI | 79,4 | = | −21% (bajo su tendencia) | baja |
-| 10 | MALLPLAZA (IPSA) | 78,4 | = | −6% (bajo su tendencia) | alta |
+| 1 | ANDINA-B (IPSA) | 91,7 | = | −4% (cerca de su tendencia) | alta |
+| 2 | LIPIGAS | 91,4 | = | +16% (sobre su tendencia) | baja |
+| 3 | ANDINA-A | 88,3 | = | +2% (cerca de su tendencia) | baja |
+| 4 | ILC (IPSA) | 85,3 | = | +7% (cerca de su tendencia) | media |
+| 5 | PARAUCO (IPSA) | 84,3 | ▲1 | −3% (cerca de su tendencia) | alta |
+| 6 | SCHWAGER | 83,7 | ▼1 | +61% (muy sobre su tendencia) | baja |
+| 7 | CENCOMALLS (IPSA) | 83,6 | ▲1 | −14% (bajo su tendencia) | media |
+| 8 | ENELGXCH | 83,2 | ▼1 | −11% (bajo su tendencia) | baja |
+| 9 | MALLPLAZA (IPSA) | 81,4 | ▲1 | −6% (bajo su tendencia) | alta |
+| 10 | CHILE (IPSA) | 80,8 | ▲1 | +3% (cerca de su tendencia) | alta |
 
 **Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):
-1. **ANDINA-B** (88,7 pts, puesto 1). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 4,8% en 12 meses. Ojo: la caja no cubre bien el dividendo.
-2. **CENCOMALLS** (80,6 pts, puesto 8). Por qué: está 14% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 3,3% en 12 meses. Ojo: ROE bajo.
-3. **ENELGXCH** (81,2 pts, puesto 7). Por qué: está 11% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 6,9% en 12 meses. Ojo: utilidades que no crecen, se transa poco.
-4. **PARAUCO** (81,3 pts, puesto 6). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,2% en 12 meses. Ojo: ROE bajo.
-5. **ANDINA-A** (85,3 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,2% en 12 meses. Ojo: la caja no cubre bien el dividendo, se transa poco.
+1. **ANDINA-B** (91,7 pts, puesto 1). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 4,8% en 12 meses. Ojo: la caja no cubre bien el dividendo.
+2. **CENCOMALLS** (83,6 pts, puesto 7). Por qué: está 14% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 3,3% en 12 meses. Ojo: ROE bajo.
+3. **PARAUCO** (84,3 pts, puesto 5). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,2% en 12 meses. Ojo: ROE bajo.
+4. **ENELGXCH** (83,2 pts, puesto 8). Por qué: está 11% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 6,9% en 12 meses. Ojo: utilidades que no crecen, se transa poco.
+5. **ANDINA-A** (88,3 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,2% en 12 meses. Ojo: la caja no cubre bien el dividendo, se transa poco.
 
 **Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+16%), SCHWAGER (+61%)
+
+**Cambios en el top 10:** entran CHILE; salen ZOFRI
 
 Sin datos nuevos hoy (se mantuvo el dato anterior): ISANPA.
 
