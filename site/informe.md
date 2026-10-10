@@ -1,4 +1,4 @@
-## Ranking de dividendos — 9 de octubre de 2026 a las 18:30
+## Ranking de dividendos — 10 de octubre de 2026 a las 18:13
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -8,9 +8,9 @@
 | 2 | LIPIGAS | 88,4 | = | +16% (sobre su tendencia) | baja |
 | 3 | ANDINA-A | 85,3 | = | +2% (cerca de su tendencia) | baja |
 | 4 | ILC (IPSA) | 83,3 | = | +7% (cerca de su tendencia) | media |
-| 5 | SCHWAGER | 81,8 | = | +61% (muy sobre su tendencia) | baja |
-| 6 | PARAUCO (IPSA) | 81,3 | ▲1 | −3% (cerca de su tendencia) | alta |
-| 7 | ENELGXCH | 81,2 | ▼1 | −11% (bajo su tendencia) | baja |
+| 5 | SCHWAGER | 81,7 | = | +61% (muy sobre su tendencia) | baja |
+| 6 | PARAUCO (IPSA) | 81,3 | = | −3% (cerca de su tendencia) | alta |
+| 7 | ENELGXCH | 81,2 | = | −11% (bajo su tendencia) | baja |
 | 8 | CENCOMALLS (IPSA) | 80,6 | = | −14% (bajo su tendencia) | media |
 | 9 | ZOFRI | 79,4 | = | −21% (bajo su tendencia) | baja |
 | 10 | MALLPLAZA (IPSA) | 78,4 | = | −6% (bajo su tendencia) | alta |
