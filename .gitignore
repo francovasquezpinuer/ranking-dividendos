@@ -2,3 +2,4 @@
 __pycache__/
 site/precios.json
 cartera.json
+site/historico.json

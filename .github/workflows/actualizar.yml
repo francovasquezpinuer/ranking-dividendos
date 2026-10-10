@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Traer el histórico publicado (no se guarda en el repositorio)
+        run: curl -sfL -o site/historico.json "https://francovasquezpinuer.github.io/ranking-dividendos/historico.json" || echo "Sin histórico previo"
       - name: Descargar datos y recalcular
         run: python3 scripts/update.py
       - name: Guardar cambios

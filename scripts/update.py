@@ -52,12 +52,19 @@ def mes(ts): d = datetime.datetime.fromtimestamp(ts, TZ); return d.year * 12 + d
 def p5(x): return None if x is None else float(f"{x:.5g}")
 
 
+def dia(ts):
+    """Fecha (hora de Chile) como número de días desde 1970-01-01."""
+    d = datetime.datetime.fromtimestamp(ts, TZ).date()
+    return (d - datetime.date(1970, 1, 1)).days
+
+
 def raw(x): return x.get("raw") if isinstance(x, dict) else None
 
 
 def uno(tk, cr, ahora):
     sym = urllib.parse.quote(tk.replace(" ", "-") + ".SN")
     o = [None] * 9
+    h = {}  # histórico público: cierres diarios y dividendos por acción (para la pestaña «Mi cartera»)
     Y = ahora.year; yrs = [Y - 5 + i for i in range(5)]; mk = Y * 12 + ahora.month - 1; now_s = ahora.timestamp()
     j = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=6y&interval=1mo&events=div")
     res = (((j or {}).get("chart") or {}).get("result") or [None])[0]
@@ -71,6 +78,7 @@ def uno(tk, cr, ahora):
         dv = list(((res.get("events") or {}).get("dividends") or {}).values())
         o[4] = [p5(sum(e["amount"] for e in dv if datetime.datetime.fromtimestamp(e["date"], TZ).year == y)) for y in yrs]
         o[5] = p5(sum(e["amount"] for e in dv if e["date"] > now_s - 365 * 86400))
+        h["dv"] = sorted([dia(e["date"]), p5(e["amount"])] for e in dv if e["date"] > now_s - 3 * 365 * 86400)
     if cr:
         q = get_json(f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{sym}?modules=summaryDetail,financialData&crumb={urllib.parse.quote(cr)}")
         qr = (((q or {}).get("quoteSummary") or {}).get("result") or [None])[0]
@@ -84,7 +92,8 @@ def uno(tk, cr, ahora):
         qq = lr["indicators"]["quote"][0]
         m = [c * v for c, v in zip(qq.get("close") or [], qq.get("volume") or []) if c is not None and v is not None]
         if m: o[8] = [round(sum(m) / len(m)), round(statistics.median(m))]
-    return tk, o
+        h["c"] = [[dia(t), p5(c)] for t, c in zip(lr.get("timestamp") or [], qq.get("close") or []) if c is not None]
+    return tk, o, h
 
 
 TS_TYPES = ["annualNetIncomeCommonStockholders", "annualFreeCashFlow", "annualCashDividendsPaid"]
@@ -123,13 +132,31 @@ def actualizar_fundamentos(uni, ahora):
     print(f"fundamentos (utilidades, flujo de caja, dividendos pagados): {n}/{len(uni)}")
 
 
+def guardar_historico(nuevo):
+    """site/historico.json: cierres diarios (~1 año) y dividendos por acción (3 años) de todas las acciones.
+    Si Yahoo no responde para una acción, se conserva lo anterior."""
+    ruta = os.path.join(SITE, "historico.json")
+    try: viejo = json.load(open(ruta)).get("d", {})
+    except Exception: viejo = {}
+    for tk, h in nuevo.items():
+        v = viejo.setdefault(tk, {})
+        for k in ("c", "dv"):
+            if h.get(k): v[k] = h[k]
+    json.dump({"t": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "d": viejo},
+              open(ruta, "w"), ensure_ascii=False, separators=(",", ":"))
+    ej = viejo.get("VAPORES", {})
+    print(f"::notice::Histórico diario: {len(nuevo)} acciones; ej. VAPORES {len(ej.get('c', []))} cierres, dividendos {ej.get('dv', [])[-3:]}")
+
+
 def main():
     uni = json.load(open(os.path.join(RAIZ, "universo.json")))
     ahora = datetime.datetime.now(TZ)
     cr = crumb()
     print("crumb:", "ok" if cr else "NO (se mantienen payout y deuda anteriores)")
     with ThreadPoolExecutor(6) as ex:
-        data = dict(ex.map(lambda u: uno(u[0], cr, ahora), uni))
+        res = list(ex.map(lambda u: uno(u[0], cr, ahora), uni))
+    data = {tk: o for tk, o, _ in res}
+    guardar_historico({tk: h for tk, _, h in res if h})
     con_precio = sum(1 for v in data.values() if v[3] is not None)
     print(f"acciones con precio: {con_precio}/{len(data)}")
     if con_precio < len(data) * 0.5:

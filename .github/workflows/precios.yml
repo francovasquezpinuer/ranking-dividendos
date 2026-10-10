@@ -23,6 +23,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Traer el histórico publicado (no se guarda en el repositorio)
+        run: curl -sfL -o site/historico.json "https://francovasquezpinuer.github.io/ranking-dividendos/historico.json" || echo "Sin histórico previo"
       - name: Descargar precios del día
         run: python3 scripts/precios.py
       - uses: actions/configure-pages@v5
