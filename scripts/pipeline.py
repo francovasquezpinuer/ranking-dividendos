@@ -254,6 +254,10 @@ CRIT = ["Crecimiento firme del precio", "Tendencia dividendo", "Crecimiento divi
         "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez", "Perspectivas del negocio"]
 
 
+_RADAR_F = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "datos", "radar.json")
+RADAR = set(json.load(open(_RADAR_F))) if os.path.exists(_RADAR_F) else set()  # acciones que Franco sigue de cerca
+
+
 def aplicar_persp(rows, persp):
     """Agrega a cada fila la nota de perspectivas del negocio (fut 1-5), su razón (futr) y la fuente (futf)."""
     for r in rows:
@@ -323,7 +327,8 @@ def razones(r):
     S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(len(SMAX))]
     pq = []
     if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su tendencia de 5 años (precio con descuento)")
-    else: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
+    elif r["_dev"] <= 0.05: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
+    else: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su tendencia de 5 años ({'cara: mejor esperar una baja' if r['_dev'] > 0.10 else 'algo cara'})")
     fuertes = sorted([i for i in list(range(10)) + [11] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
     if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
     pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
@@ -379,6 +384,13 @@ def informe(ok, prev_rank, fecha_txt, sin_datos):
                      + (f" Ojo: {ojo}." if ojo else ""))
     else:
         L.append("- Ninguna hoy: las mejor rankeadas están sobre su tendencia de precio.")
+    radar = ordenar_cand([r for r in ok if r["tk"] in RADAR and r not in cand])
+    if radar:
+        L.append("")
+        L.append("**En tu radar** (no cumplen hoy la regla de candidatas):")
+        for r in radar:
+            pq, ojo = razones(r)
+            L.append(f"- **{r['tk']}** ({nf(r['_T'], 1)} pts, puesto {r['_rk']}). Por qué: {pq}." + (f" Ojo: {ojo}." if ojo else ""))
     if caras:
         L.append("")
         L.append("**Buenas, pero caras hoy (mejor esperar una baja):** " + ", ".join(f"{r['tk']} ({sgn_pct(r['_dev'])})" for r in caras))
@@ -403,8 +415,9 @@ INF_CSS = """<style>
 #informe .cand{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg)}
 #informe .cand b{font-size:15px}
 #informe .cand .ord{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
-#informe .cand:first-child{border-color:var(--fg2)}
-#informe .cand:first-child .ord{color:var(--fit)}
+#informe .cands:not(.radar) .cand:first-child{border-color:var(--fg2)}
+#informe .cands.radar .cand{border-style:dashed}
+#informe .cands:not(.radar) .cand:first-child .ord{color:var(--fit)}
 #informe .cand .pq b{font-size:12.5px;color:var(--fg)}
 #informe .cand p.pq{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #informe .cand .pts{display:block;font-family:var(--mono);font-size:12.5px;color:var(--fg2);margin-top:2px}
@@ -436,19 +449,23 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
          f'<div><h2>{esc(titulo)}</h2><p class="sub">Actualizado el {esc(fecha_txt)} (hora de Chile) · se actualiza solo varias veces al día hábil</p></div>',
          '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años. '
          'El orden parte del puntaje, suma un premio por estar bajo su tendencia (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
+    def tarjeta(r, etiqueta):
+        pq, ojo = razones(r)
+        return (f'<div class="cand"><span class="ord">{etiqueta}</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
+                f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
+                f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
+                + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "") + '</p>'
+                f'<p class="pq"><b>Por qué:</b> {esc(pq[0].upper() + pq[1:])}.</p>'
+                + (f'<p class="pq"><span class="warn">Ojo:</span> {esc(ojo)}.</p>' if ojo else "") + "</div>")
     if cand:
-        H.append('<div class="cands">')
-        for i, r in enumerate(ordenar_cand(cand)):
-            pq, ojo = razones(r)
-            H.append(f'<div class="cand"><span class="ord">{i + 1}ª opción</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
-                     f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
-                     f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
-                     + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "") + '</p>'
-                     f'<p class="pq"><b>Por qué:</b> {esc(pq[0].upper() + pq[1:])}.</p>'
-                     + (f'<p class="pq"><span class="warn">Ojo:</span> {esc(ojo)}.</p>' if ojo else "") + "</div>")
-        H.append("</div>")
+        H.append('<div class="cands">' + "".join(tarjeta(r, f"{i + 1}ª opción") for i, r in enumerate(ordenar_cand(cand))) + "</div>")
     else:
         H.append('<p class="sub">Ninguna hoy: las mejor rankeadas están más de 5% sobre su tendencia de precio.</p>')
+    radar = ordenar_cand([r for r in ok if r["tk"] in RADAR and r not in cand])
+    if radar:
+        H.append('<div><b>En tu radar</b><p class="sub">Acciones que sigues aunque hoy no cumplan la regla de candidatas (no están entre las 12 mejores o están más de 5% sobre su tendencia). '
+                 'Mismo análisis y mismo orden de compra.</p></div>')
+        H.append('<div class="cands radar">' + "".join(tarjeta(r, "En tu radar") for r in radar) + "</div>")
     if caras:
         H.append('<p style="margin:0"><b>Buenas, pero caras hoy (mejor esperar una baja):</b> ' + ", ".join(f"{esc(r['tk'])} ({sgn_pct(r['_dev'])})" for r in caras) + "</p>")
     H.append('<div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. tendencia</th><th>Liquidez</th></tr></thead><tbody>')
