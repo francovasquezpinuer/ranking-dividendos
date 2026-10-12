@@ -193,6 +193,16 @@ def fund_metrics(tk, f, fd, sec, po, ov=None):
     return eg, cov, roe
 
 
+def rend_hist(v, d, m0):
+    """Rendimiento promedio 2022-2025 (dividendo regular del año ÷ precio promedio de ese año). None si falta historia."""
+    Y = (m0 + len(v) - 1) // 12                      # año actual; d[k] es el año Y-5+k
+    ys = []
+    for k in range(1, 5):                            # se omite el primer año (casi sin meses de precio)
+        pr = [x for i, x in enumerate(v) if (m0 + i) // 12 == Y - 5 + k and x]
+        if len(pr) >= 6: ys.append(d[k] / (sum(pr) / len(pr)))
+    return sum(ys) / len(ys) if len(ys) >= 2 and sum(ys) > 0 else None
+
+
 def compute(base, fund=None, verif=None):
     rows = []
     for tk, b in base.items():
@@ -211,12 +221,14 @@ def compute(base, fund=None, verif=None):
             res = [d[i] - (dm * (i + 1) + db) for i in range(5)]; rcv = math.sqrt(sum(e * e for e in res) / 5) / dav
         else: rcv = 9
         last = v[-1]; yt = (b["t"] or 0) / last if last else 0
+        yh = rend_hist(v, d, b["m0"])
         sv = v[s:]; flat = sum(1 for i in range(1, len(sv)) if sv[i] == sv[i - 1]) / (len(sv) - 1)
         po = b["p"]
         sec = SECTOR_FIX.get(tk, b["sec"])
         r = dict(tk=tk, sec=b["sec"], name=b["name"], ipsa=b["ipsa"], pm=round(pm, 4), pb=round(pb, 4), pr=round(pr, 4), g=round(g, 4),
                  dm=round(dm, 4), db=round(db, 4), dr=round(dr, 4), dav=round(dav, 4), rcv=round(rcv, 4), yt=round(yt, 4),
-                 po=None if po is None else round(po, 4), last=last, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4)
+                 po=None if po is None else round(po, 4), last=last, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4,
+                 yh=None if yh is None else round(yh, 5))
         r["eg"], r["cov"], r["roe"] = fund_metrics(tk, (fund or {}).get(tk), b["fd"], b["sec"], po, ov)
         r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_k"] = k; r["_ovd"] = ov.get("deuda")
         r["dx"] = debt_info(r)
@@ -246,12 +258,19 @@ def score_crec(r):
          8 * clamp(r["roe"], .05, .20) if r.get("roe") is not None else 0,      # ROE
          4 * clamp(r["cov"], .8, 1.5) if r.get("cov") is not None else 0,       # cobertura del dividendo con caja
          4 * clamp(math.log10(max(r["_mv"], 1)), math.log10(5e6), 9),          # liquidez
-         (r["fut"] - 1) if r.get("fut") else 2]                                 # perspectivas del negocio (1-5 → 0-4; sin evaluación = 2)
+         (r["fut"] - 1) if r.get("fut") else 2,                                 # perspectivas del negocio (1-5 → 0-4; sin evaluación = 2)
+         4 * clamp(rend_rel(r), .7, 1.3)]                                       # rendimiento de hoy vs. su promedio 2022-2025
     return S, sum(S)
 
 
+def rend_rel(r):
+    """Rendimiento de hoy (último dividendo anual ÷ precio) dividido por su promedio 2022-2025; 0 si no hay datos."""
+    d = r["d"][-1] if r.get("d") else 0
+    return (d / r["last"]) / r["yh"] if r.get("yh") and r["last"] and d > 0 else 0
+
+
 CRIT = ["Crecimiento firme del precio", "Tendencia dividendo", "Crecimiento dividendo", "% de pago sano", "Constancia",
-        "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez", "Perspectivas del negocio"]
+        "Rendimiento + crecimiento", "Deuda", "Crecimiento de utilidades", "ROE", "Cobertura con caja", "Liquidez", "Perspectivas del negocio", "Rendimiento vs. su historia"]
 
 
 _RADAR_F = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "datos", "radar.json")
@@ -304,13 +323,13 @@ def clean(r): return {k: v for k, v in r.items() if not k.startswith("_")}
 
 
 # ---------------------------------------------------------------- orden de compra entre las candidatas
-SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4, 4]
+SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4, 4, 4]
 FUERTE = ["el precio crece firme", "el dividendo tiene tendencia al alza", "el dividendo viene creciendo", "reparte un % sano de sus utilidades",
           "paga dividendos con constancia", "buen rendimiento más crecimiento", "deuda acotada para su sector", "utilidades creciendo",
-          "ROE alto", "el dividendo está cubierto con caja", "se transa mucho", "buenas perspectivas para el negocio"]
+          "ROE alto", "el dividendo está cubierto con caja", "se transa mucho", "buenas perspectivas para el negocio", "rinde más que su promedio histórico"]
 DEBIL = ["el precio no crece firme", "el dividendo no muestra tendencia clara", "el dividendo crece poco", "reparte un % de utilidades fuera del rango sano",
          "dividendo irregular", "rendimiento bajo", "deuda alta para su sector", "utilidades que no crecen",
-         "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco", "el negocio enfrenta riesgos a futuro"]
+         "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco", "el negocio enfrenta riesgos a futuro", "rinde menos que su promedio histórico (precio exigente)"]
 
 
 def prioridad(T, dev, mv):
@@ -329,7 +348,7 @@ def razones(r):
     if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su tendencia de 5 años (precio con descuento)")
     elif r["_dev"] <= 0.05: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
     else: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su tendencia de 5 años ({'cara: mejor esperar una baja' if r['_dev'] > 0.10 else 'algo cara'})")
-    fuertes = sorted([i for i in list(range(10)) + [11] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
+    fuertes = sorted([i for i in list(range(10)) + [11, 12] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
     if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
     pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
     debiles = sorted([i for i in range(len(SMAX)) if frac[i] < 0.4], key=lambda i: frac[i] * SMAX[i] - SMAX[i])[:2]
@@ -454,7 +473,8 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
         return (f'<div class="cand"><span class="ord">{etiqueta}</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
                 f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
                 f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
-                + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "") + '</p>'
+                + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "")
+                + (f'<br>Rinde hoy {nf(r["d"][-1] / r["last"] * 100, 1)}% vs. {nf(r["yh"] * 100, 1)}% promedio 2022–25' if r.get("yh") and r["d"][-1] else "") + '</p>'
                 f'<p class="pq"><b>Por qué:</b> {esc(pq[0].upper() + pq[1:])}.</p>'
                 + (f'<p class="pq"><span class="warn">Ojo:</span> {esc(ojo)}.</p>' if ojo else "") + "</div>")
     if cand:
