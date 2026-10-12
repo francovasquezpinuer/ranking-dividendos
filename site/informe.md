@@ -1,4 +1,4 @@
-## Ranking de dividendos — 11 de octubre de 2026 a las 21:26
+## Ranking de dividendos — 11 de octubre de 2026 a las 21:30
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -21,10 +21,6 @@
 3. **PARAUCO** (84,3 pts, puesto 5). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,2% en 12 meses. Ojo: ROE bajo.
 4. **ENELGXCH** (83,2 pts, puesto 8). Por qué: está 11% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 6,9% en 12 meses. Ojo: utilidades que no crecen, se transa poco.
 5. **ANDINA-A** (88,3 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,2% en 12 meses. Ojo: la caja no cubre bien el dividendo, se transa poco.
-
-**En tu radar** (no cumplen hoy la regla de candidatas):
-- **IAM** (75,8 pts, puesto 13). Por qué: está 20% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 5,5% en 12 meses. Ojo: ROE bajo, el dividendo crece poco.
-- **AGUAS-A** (75,4 pts, puesto 14). Por qué: está 19% bajo su tendencia de 5 años (precio con descuento); reparte un % sano de sus utilidades, deuda acotada para su sector, utilidades creciendo; rinde 5,2% en 12 meses. Ojo: el dividendo crece poco, ROE bajo.
 
 **Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+16%), SCHWAGER (+61%)
 
