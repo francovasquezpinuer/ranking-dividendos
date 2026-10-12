@@ -247,11 +247,11 @@ def chw(r): return (r["yt"] or 0) + (max(-0.1, min(0.10, r["dm"] / r["dav"])) if
 
 
 def score_crec(r):
-    S = [16 * clamp(r["g"], 0, .25) * max(0.0, r["pr"]),                       # crecimiento firme del precio (tendencia × crecimiento)
-         8 * (r["dr"] + 1) / 2 if r["dav"] > 0 else 0,                            # tendencia dividendo
+    S = [12 * clamp(r["g"], 0, .25) * max(0.0, r["pr"]),                       # crecimiento firme del precio (tendencia × crecimiento)
+         6 * (r["dr"] + 1) / 2 if r["dav"] > 0 else 0,                            # tendencia dividendo
          8 * clamp(r["dm"] / r["dav"], 0, .20) if r["dav"] > 0 else 0,            # crecimiento dividendo
          pay_high(r["po"]),                                                     # % de pago sano (11)
-         8 * clamp(0.6 - r["rcv"], 0, 0.6),                                     # constancia
+         6 * clamp(0.6 - r["rcv"], 0, 0.6),                                     # constancia
          11 * clamp(chw(r), .05, .17),                                          # rendimiento + crecimiento
          debt_pts(r),                                                           # deuda (11)
          11 * clamp(r["eg"], 0, .15) if r.get("eg") is not None else 0,         # crecimiento de utilidades
@@ -323,7 +323,7 @@ def clean(r): return {k: v for k, v in r.items() if not k.startswith("_")}
 
 
 # ---------------------------------------------------------------- orden de compra entre las candidatas
-SMAX = [16, 8, 8, 11, 8, 11, 11, 11, 8, 4, 4, 4, 4]
+SMAX = [12, 6, 8, 11, 6, 11, 11, 11, 8, 4, 4, 4, 4]  # suma 100
 FUERTE = ["el precio crece firme", "el dividendo tiene tendencia al alza", "el dividendo viene creciendo", "reparte un % sano de sus utilidades",
           "paga dividendos con constancia", "buen rendimiento más crecimiento", "deuda acotada para su sector", "utilidades creciendo",
           "ROE alto", "el dividendo está cubierto con caja", "se transa mucho", "buenas perspectivas para el negocio", "rinde más que su promedio histórico"]

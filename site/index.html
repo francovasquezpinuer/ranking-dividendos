@@ -128,7 +128,7 @@ th.why-h{text-align:left!important;cursor:default}
   <header>
     <div class="eyebrow">Bolsa de Santiago · 110 acciones · nov 2021 – oct 2026 · con requisito de liquidez</div>
     <h1>Ranking de la Bolsa de Santiago</h1>
-    <p>Todas las acciones con datos en Yahoo Finance, evaluadas con datos de Yahoo Finance corregidos con fuentes oficiales (CMF y las propias empresas) en las acciones marcadas con ✓ en su ficha, la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). El puntaje premia dividendos sanos y crecientes, respaldados por utilidades, con precio al alza y deuda acotada para su sector (13 criterios, máximo 108 pts: crecimiento firme del precio 16 pts; % de pago sano, rendimiento + crecimiento, deuda y crecimiento de utilidades 11 c/u; tendencia, crecimiento y constancia del dividendo y ROE 8 c/u; cobertura con caja, liquidez, perspectivas del negocio y rendimiento vs. su historia 4 c/u).</p>
+    <p>Todas las acciones con datos en Yahoo Finance, evaluadas con datos de Yahoo Finance corregidos con fuentes oficiales (CMF y las propias empresas) en las acciones marcadas con ✓ en su ficha, la recta del precio mensual (5 años) y la recta del dividendo anual (2021–2025). El puntaje premia dividendos sanos y crecientes, respaldados por utilidades, con precio al alza y deuda acotada para su sector (13 criterios, máximo 100 pts: crecimiento firme del precio 12 pts; % de pago sano, rendimiento + crecimiento, deuda y crecimiento de utilidades 11 c/u; crecimiento del dividendo y ROE 8 c/u; tendencia y constancia del dividendo 6 c/u; cobertura con caja, liquidez, perspectivas del negocio y rendimiento vs. su historia 4 c/u).</p>
   </header><!--VIVO--><style>
 #vivo{display:grid;gap:12px;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:16px 20px;min-width:0}
 #vivo[hidden]{display:none}
@@ -326,11 +326,11 @@ ROWS.forEach(r => { const l = LIQ[r.tk] || [0,0]; r.mv = l[1]; r.av = l[0]; r.ti
 const liqPts = (r, mx) => mx * clamp(Math.log10(Math.max(r.mv,1)), Math.log10(5e6), 9);
 const MODES = {
   crec: {label: "Crecimiento", crit: [
-      ["c1","Crecimiento firme del precio",16,"Crecimiento anual del precio (ajuste exponencial, tope 25%) multiplicado por la r de su recta (0 si es negativa): premia que suba rápido y de forma pareja. 25% al año con r = 1 → 16 pts.", r => `Crece ${pct(r.g)} al año · r ${sgn(r.pr,2)}`, r => 16*clamp(r.g,0,.25)*Math.max(0,r.pr)],
-      ["c3","Tendencia dividendo",8,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 8.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.dav > 0 ? 8*(r.dr+1)/2 : 0],
+      ["c1","Crecimiento firme del precio",12,"Crecimiento anual del precio (ajuste exponencial, tope 25%) multiplicado por la r de su recta (0 si es negativa): premia que suba rápido y de forma pareja. 25% al año con r = 1 → 12 pts.", r => `Crece ${pct(r.g)} al año · r ${sgn(r.pr,2)}`, r => 12*clamp(r.g,0,.25)*Math.max(0,r.pr)],
+      ["c3","Tendencia dividendo",6,"r de la recta del dividendo 2021–2025: −1 = 0 pts; +1 = 6.", r => `r dividendo = ${sgn(r.dr,2)}`, r => r.dav > 0 ? 6*(r.dr+1)/2 : 0],
       ["c4","Crecimiento dividendo",8,"Pendiente de la recta ÷ dividendo promedio (cuánto sube por año): 0% o menos = 0; 20% o más = 8.", r => r.dav > 0 ? `Sube ${nf(r.dm/r.dav*100,0)}% del promedio por año` : "Sin dividendos", r => r.dav > 0 ? 8*clamp(r.dm/r.dav,0,.20) : 0],
       ["c5","% de pago sano",11,"Payout (dividendos ÷ utilidad, con dato verificado cuando existe): 40–75% = 11; 75–90% = 8,25; 30–40% (mínimo legal en Chile: 30%) = 5,5; 90–100% = 4,4; 20–30% = 1,65; menos de 20%, más de 100%, pérdidas o sin dato = 0.", r => r.po == null ? "Sin dato confiable" : `Payout ${nf(r.po*100,0)}%`, r => payHigh(r.po)],
-      ["c6","Constancia",8,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 8 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => 8*clamp(0.6-r.rcv,0,0.6)],
+      ["c6","Constancia",6,"Cuánto se aleja cada año de su recta (error ÷ promedio): 0% = 6 pts; 60% o más = 0.", r => r.dav > 0 ? `Error vs recta: ${nf(Math.min(r.rcv,9)*100,0)}% del promedio` : "Sin dividendos", r => 6*clamp(0.6-r.rcv,0,0.6)],
       ["c8","Rendimiento + crecimiento",11,"Rendimiento de los últimos 12 meses + crecimiento anual del dividendo (pendiente ÷ promedio, limitado entre −10% y +10% para no premiar la recuperación post-pandemia): 5% o menos = 0; 17% o más = 11.", r => `Rinde ${nf((r.yt||0)*100,1)}% + crece ${nf(r.dav > 0 ? Math.max(-10, Math.min(10, r.dm/r.dav*100)) : 0,1)}% = ${nf(chw(r)*100,1)}%`, r => 11*clamp(chw(r),.05,.17)],
       ["c9","Deuda",11,"Deuda neta ÷ EBITDA con escala por sector, según clasificadoras de riesgo (S&P, Fitch, Feller): agua y eléctricas reguladas ≤3,5x = 11 y ≥6x = 0; generación y retail ≤2x / ≥3,5x; malls ≤4,5x / ≥8x; bebidas y consumo ≤1,5x / ≥3x; resto ≤2x / ≥5x. Bancos: patrimonio ÷ activos (≥10% = 11; ≤6% = 0). Holdings: neutro (5,5) salvo dato verificado de deuda del holding (≤20% del valor = 11; ≥45% = 0).", r => debtLbl(r), r => debtPts(r,11)],
       ["c10","Crecimiento de utilidades",11,"Pendiente de la recta de la utilidad neta anual (últimos 4–5 años) ÷ su promedio: 0% o menos = 0; 15% o más al año = 11. Utilidad promedio negativa o sin dato = 0.", r => r.eg == null ? "Sin dato" : (r.eg <= -1 ? "Utilidad promedio negativa" : `Utilidad ${r.eg >= 0 ? "sube" : "baja"} ${nf(Math.abs(r.eg)*100,0)}% del promedio por año`), r => r.eg == null ? 0 : 11*clamp(r.eg,0,.15)],
@@ -476,7 +476,7 @@ function renderScatter(){
   const pts = liq.filter(visible);
   const W = 1000, H = 420, P = {l:48, r:16, t:16, b:44};
   const X = v => P.l + (Math.min(Math.max(Math.log10(Math.max(v,1)), LX0), LX1) - LX0)/(LX1 - LX0)*(W - P.l - P.r);
-  const ys = pts.map(r => r.tot), lo = Math.max(0, Math.floor((Math.min(...ys, 108) - 5)/10)*10), hi = 108;
+  const ys = pts.map(r => r.tot), lo = Math.max(0, Math.floor((Math.min(...ys, 100) - 5)/10)*10), hi = 100;
   const Y = v => P.t + (hi - v)/(hi - lo)*(H - P.t - P.b);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Puntaje versus liquidez">`;
   s += `<rect x="${X(1e6)}" y="${P.t}" width="${X(5e6)-X(1e6)}" height="${H-P.t-P.b}" fill="var(--down)" fill-opacity=".08"/><text x="${(X(1e6)+X(5e6))/2}" y="${P.t+14}" text-anchor="middle">bajo el mínimo</text>`;
@@ -509,7 +509,7 @@ const cards = {};
 function fillScore(r){
   const card = cards[r.tk]; if (!card) return;
   card.querySelector(".rk").textContent = r.rank;
-  card.querySelector(".scorebox").innerHTML = `<div class="hd"><span>Puntaje · ${MODES[mode].label}</span><span>Total <b>${nf(r.tot,1)}</b> / 108</span></div>` +
+  card.querySelector(".scorebox").innerHTML = `<div class="hd"><span>Puntaje · ${MODES[mode].label}</span><span>Total <b>${nf(r.tot,1)}</b> / 100</span></div>` +
     CRIT.map(([k, l, mx]) => `<div class="srow" title="${SRC(k)(r)}"><span>${l}</span><span class="trk"><i style="width:${r[k]/mx*100}%"></i></span><span>${nf(r[k],1)} / ${mx}</span></div>`).join("");
   card.querySelector(".whyc").textContent = r.why;
 }
