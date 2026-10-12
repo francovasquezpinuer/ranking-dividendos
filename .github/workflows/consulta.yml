@@ -11,12 +11,13 @@ jobs:
           import sys, statistics, datetime; sys.path.insert(0, "scripts")
           from update import get_json, crumb
           crumb()
-          for sym in ["VAPORES.SN", "ENELAM.SN", "HLAG.DE"]:
-              j = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=3mo&interval=1d")
+          for sym in ["VAPORES.SN", "ENELAM.SN", "CENCOMALLS.SN", "IAM.SN"]:
+              j = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=5d&interval=5m")
               r = j["chart"]["result"][0]; q = r["indicators"]["quote"][0]; m = r["meta"]
-              rows = [(datetime.datetime.utcfromtimestamp(t).strftime("%m-%d"), o, h, l, c, v) for t, o, h, l, c, v in zip(r["timestamp"], q["open"], q["high"], q["low"], q["close"], q["volume"]) if c]
-              last = rows[-15:]
-              txt = " ; ".join(f"{d} o{o:.2f} h{h:.2f} l{l:.2f} c{c:.2f} v{v}" for d, o, h, l, c, v in last)
-              cl = [x[4] for x in rows]; rng = statistics.mean((x[2]-x[3])/x[4] for x in rows[-20:] if x[2] and x[3])
-              print(f"::notice::{sym} 52w {m.get('fiftyTwoWeekLow')}-{m.get('fiftyTwoWeekHigh')} | 3m min {min(cl):.2f} max {max(cl):.2f} | rango diario prom 20d {rng*100:.2f}% | {txt}")
+              pts = [(datetime.datetime.utcfromtimestamp(t - 3*3600).strftime("%d %H:%M"), c, v) for t, c, v in zip(r.get("timestamp") or [], q.get("close") or [], q.get("volume") or []) if c]
+              byday = {}
+              for d, c, v in pts: byday.setdefault(d[:2], []).append((d[3:], c, v or 0))
+              res = " ; ".join(f"dia {k}: n{len(x)} min {min(c for _,c,_ in x):.2f} max {max(c for _,c,_ in x):.2f} ult {x[-1][1]:.2f} ({x[-1][0]}) vol {sum(v for *_,v in x)}" for k, x in byday.items())
+              t = m.get("regularMarketTime"); ts = datetime.datetime.utcfromtimestamp(t - 3*3600).strftime("%Y-%m-%d %H:%M") if t else None
+              print(f"::notice::{sym} precio {m.get('regularMarketPrice')} a las {ts} | cierre ant {m.get('chartPreviousClose')} | dia {m.get('regularMarketDayLow')}-{m.get('regularMarketDayHigh')} vol {m.get('regularMarketVolume')} | {res}")
           P
