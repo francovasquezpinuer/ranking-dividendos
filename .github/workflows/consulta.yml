@@ -1,0 +1,24 @@
+name: Consulta puntual
+on: { workflow_dispatch: {} }
+permissions: { contents: read }
+jobs:
+  consulta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 - <<'P'
+          import sys, datetime; sys.path.insert(0, "scripts")
+          from update import get_json, crumb
+          crumb()
+          for sym in ["ENELAM.SN", "VAPORES.SN", "HLAG.DE"]:
+              try:
+                  r = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=1d&interval=5m")["chart"]["result"][0]
+                  m = r["meta"]; q = (r.get("indicators") or {}).get("quote") or [{}]
+                  cl = q[0].get("close") or []; ts = r.get("timestamp") or []
+                  pts = [(datetime.datetime.utcfromtimestamp(t - 3*3600).strftime("%H:%M"), c) for t, c in zip(ts, cl) if c]
+                  t = m.get("regularMarketTime") or 0
+                  print(f"::notice::{sym} último {m.get('regularMarketPrice')} ({datetime.datetime.utcfromtimestamp(t-3*3600).strftime('%m-%d %H:%M')} Chile) día {m.get('regularMarketDayLow')}-{m.get('regularMarketDayHigh')} | " + " ".join(f"{h}={c:.2f}" for h, c in pts[-12:]))
+              except Exception as e:
+                  print(f"::notice::{sym} error {e!r}")
+          P
