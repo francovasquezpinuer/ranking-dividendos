@@ -93,6 +93,23 @@ def uno(tk, cr, ahora):
         m = [c * v for c, v in zip(qq.get("close") or [], qq.get("volume") or []) if c is not None and v is not None]
         if m: o[8] = [round(sum(m) / len(m)), round(statistics.median(m))]
         h["c"] = [[dia(t), p5(c)] for t, c in zip(lr.get("timestamp") or [], qq.get("close") or []) if c is not None]
+    # El cierre diario de Yahoo a veces queda congelado (mismo precio y volumen 0 por semanas).
+    # Los datos por hora sí son reales: con ellos se arma el cierre de cada día de los últimos 6 meses.
+    hj = get_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=6mo&interval=1h")
+    hr = (((hj or {}).get("chart") or {}).get("result") or [None])[0]
+    if hr and hr.get("timestamp"):
+        dd = {}
+        for t, c in zip(hr["timestamp"], (hr["indicators"]["quote"][0].get("close") or [])):
+            if c is not None: dd[dia(t)] = p5(c)          # el último dato de cada día queda como cierre
+        m = hr.get("meta") or {}
+        if m.get("regularMarketPrice") and m.get("regularMarketTime"):
+            dd[dia(m["regularMarketTime"])] = p5(m["regularMarketPrice"])
+        if dd:
+            viejo = {d: c for d, c in h.get("c", []) if d < min(dd)}
+            h["c"] = sorted(list(viejo.items()) + list(dd.items()))
+            ep = datetime.date(1970, 1, 1)
+            pm = [c for d, c in sorted(dd.items()) if (lambda x: x.year * 12 + x.month - 1)(ep + datetime.timedelta(d)) == mk - 1]
+            if pm and o[0] == mk - 1: o[1] = pm[-1]       # cierre real del mes anterior
     return tk, o, h
 
 
@@ -144,6 +161,11 @@ def guardar_historico(nuevo):
             if h.get(k): v[k] = h[k]
     json.dump({"t": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "d": viejo},
               open(ruta, "w"), ensure_ascii=False, separators=(",", ":"))
+    # Resumen público y liviano para el resumen semanal: últimos 8 cierres y dividendos de los últimos 60 días.
+    hoy = (datetime.datetime.now(TZ).date() - datetime.date(1970, 1, 1)).days
+    sem = {tk: {"c": v.get("c", [])[-8:], "dv": [x for x in v.get("dv", []) if x[0] >= hoy - 60]} for tk, v in viejo.items()}
+    json.dump({"t": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "d": sem},
+              open(os.path.join(SITE, "semanal.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     ej = viejo.get("VAPORES", {})
     print(f"::notice::Histórico diario: {len(nuevo)} acciones; ej. VAPORES {len(ej.get('c', []))} cierres, dividendos {ej.get('dv', [])[-3:]}")
 
