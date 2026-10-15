@@ -533,6 +533,12 @@ VIVO_CSS = """<style>
 #vivo .up{color:var(--up)} #vivo .down{color:var(--down)}
 #vivo svg{width:100%;height:30px;display:block}
 #vivo small{color:var(--muted)}
+#vivo .q.tot{border-color:var(--fg2)}
+#vivo form.vlock{display:grid;gap:6px;align-content:start;border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:12.5px;min-width:0;grid-column:span 2}
+#vivo form.vlock input[type=password]{font:inherit;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--fg)}
+#vivo form.vlock button{font:inherit;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;justify-self:start}
+#vivo form.vlock label{display:flex;gap:6px;align-items:center;color:var(--fg2)}
+#vivo form.vlock .err{color:var(--down)}
 @media (min-width:1100px){
   .wrap:has(#vivo:not([hidden])){grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px}
   .wrap:has(#vivo:not([hidden]))>*{grid-column:1/-1}
@@ -549,7 +555,37 @@ VIVO_JS = r"""<script>
   const box = document.getElementById("vivo"); if (!box) return;
   const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de tendencia]
   const byTk = Object.fromEntries(META.map(m => [m[0], m]));
-  let Q = null, tab = "cand";
+  let Q = null, tab = "cand", MIA = null;  // MIA: posiciones de «Mi cartera» (se descifran en el navegador con la frase)
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function abrirCartera(pw){
+    const r = await fetch("cartera.enc.json?" + Date.now(), {cache: "no-store"}); if (!r.ok) throw new Error("sin-datos");
+    const e = await r.json();
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey({name: "PBKDF2", hash: "SHA-256", salt: b64(e.salt), iterations: e.it}, base, {name: "AES-GCM", length: 256}, false, ["decrypt"]);
+    const d = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name: "AES-GCM", iv: b64(e.iv)}, key, b64(e.ct))));
+    MIA = d.pos.map(p => ({tk: p.tk, cant: p.cant, total: p.total}));
+  }
+  async function desbloquear(pw, rec){
+    try { await abrirCartera(pw); try { if (rec) sessionStorage.setItem("cartera_pw", pw); } catch (x) {} pinta(); return true; }
+    catch (e) { try { sessionStorage.removeItem("cartera_pw"); } catch (x) {} return e && e.message === "sin-datos" ? "sin-datos" : false; }
+  }
+  try { const g = sessionStorage.getItem("cartera_pw"); if (g) desbloquear(g, true); } catch (e) {}
+  function tarjetaMia(){
+    if (!MIA) return `<form class="vlock"><b>Tus acciones</b><small>Escribe la frase de «Mi cartera» para ver cómo van hoy. Se descifra solo en tu navegador.</small>` +
+      `<input type="password" placeholder="Frase secreta" aria-label="Frase secreta" autocomplete="current-password"><label><input type="checkbox"> Recordar en esta ventana</label><button type="submit">Ver</button><small class="err"></small></form>`;
+    const P = MIA.filter(p => Q.q[p.tk]).map(p => { const q = Q.q[p.tk]; return {...p, q, c: chg(q), val: q[0] * p.cant, dia: q[1] ? (q[0] - q[1]) * p.cant : 0}; });
+    const val = P.reduce((s, p) => s + p.val, 0), dia = P.reduce((s, p) => s + p.dia, 0), cost = P.reduce((s, p) => s + p.total, 0);
+    const $ = v => (v < 0 ? "−$" : "$") + nf(Math.abs(Math.round(v)), 0);
+    const res = `<div class="q tot"><div class="t"><b>Tu cartera hoy</b></div><small>${P.length} acciones</small>` +
+      `<div class="t"><span class="px ${dia >= 0 ? "up" : "down"}">${dia >= 0 ? "+" : ""}${$(dia)}</span><span class="${dia >= 0 ? "up" : "down"}">${pct(dia / (val - dia || 1))}</span></div>` +
+      `<div class="r"><span>Valor</span><span>${$(val)}</span></div><div class="r"><span>vs. lo invertido</span><span class="${val >= cost ? "up" : "down"}">${pct(val / cost - 1)}</span></div>` +
+      `<div class="r"><span>Sube / baja</span><span>${P.filter(p => p.c > 0).length} / ${P.filter(p => p.c < 0).length}</span></div></div>`;
+    return res + P.sort((a, b) => b.dia - a.dia).map(p => { const m = byTk[p.tk] || [];
+      return `<div class="q"><div class="t"><b>${p.tk}</b><span class="vk">${m[1] ? "#" + m[1] : ""}</span></div><small>${p.cant.toLocaleString("es-CL")} acciones · ${$(p.val)}</small>` +
+        `<div class="t"><span class="px">$${pxf(p.q[0])}</span><span class="${p.c >= 0 ? "up" : "down"}">${pct(p.c)}</span></div>` + spark(p.q[4], p.q[1], p.c >= 0) +
+        `<div class="r"><span>Hoy</span><span class="${p.dia >= 0 ? "up" : "down"}">${p.dia >= 0 ? "+" : ""}${$(p.dia)}</span></div>` +
+        `<div class="r"><span>vs. tu compra</span><span class="${p.val >= p.total ? "up" : "down"}">${pct(p.val / p.total - 1).replace(/,\d\d%/, "%")}</span></div></div>`; }).join("");
+  }
   const nf = (v, d) => v.toLocaleString("es-CL", {minimumFractionDigits: d, maximumFractionDigits: d});
   const pct = x => (x >= 0 ? "+" : "−") + nf(Math.abs(x) * 100, 2) + "%";
   const pxf = v => nf(v, v >= 1000 ? 0 : v >= 10 ? 1 : 2);
@@ -585,6 +621,14 @@ VIVO_JS = r"""<script>
     const hora = t.toLocaleString("es-CL", {timeZone: "America/Santiago", weekday: "short", hour: "2-digit", minute: "2-digit"});
     box.querySelector(".st").innerHTML = `<span><span class="dot${on ? " on" : ""}"></span> ${on ? "Bolsa abierta" : "Bolsa cerrada"} · último dato ${hora}</span>` +
       (ix ? ` · <span class="idx">IPSA ${nf(ix[0], 2)} <span class="${chg(ix) >= 0 ? "up" : "down"}">${pct(chg(ix))}</span></span>` : "");
+    if (tab === "mia") {
+      const st = box.querySelector(".strip"); st.innerHTML = tarjetaMia();
+      const f = st.querySelector("form.vlock");
+      if (f) f.onsubmit = async ev => { ev.preventDefault(); const pw = f.querySelector("input[type=password]").value; if (!pw) return;
+        f.querySelector("button").disabled = true; const ok = await desbloquear(pw, f.querySelector("input[type=checkbox]").checked);
+        if (ok !== true) { f.querySelector("button").disabled = false; f.querySelector(".err").textContent = ok === "sin-datos" ? "Aún no hay datos de la cartera." : "Frase incorrecta."; } };
+      return;
+    }
     const L = lista();
     box.querySelector(".strip").innerHTML = L.length ? L.map((m, i) => {
       const q = Q.q[m[0]], c = chg(q), d = m[3] ? q[0] / m[3] - 1 : null;
@@ -614,7 +658,7 @@ def vivo_html(rows, ok):
     """Panel con precios del día (lee precios.json en el navegador). rows: todas las filas de la página; ok: su ranking."""
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
     meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None), 1 if r["_mv"] < 1e8 else 0] for r in rows]
-    tabs = [("cand", "Candidatas ahora"), ("top", "Top del ranking"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
+    tabs = [("cand", "Candidatas ahora"), ("top", "Top del ranking"), ("mia", "Mi cartera"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
     return ("<!--VIVO-->" + VIVO_CSS +
             f"<section id=\"vivo\" hidden data-meta='{esc(json.dumps(meta, ensure_ascii=False))}'>"
             '<div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div>'
@@ -622,7 +666,8 @@ def vivo_html(rows, ok):
             '<div class="strip"></div>'
             "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
             "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
-            "“Candidatas ahora” aplica la misma regla y el mismo orden de compra del informe con ese precio.</small>"
+            "“Candidatas ahora” aplica la misma regla y el mismo orden de compra del informe con ese precio. "
+            "“Mi cartera” muestra tus acciones (pide la frase de esa pestaña; tus datos siguen cifrados).</small>"
             "</section>" + VIVO_JS + "<!--/VIVO-->")
 
 
