@@ -107,6 +107,35 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
   #tabla tfoot tr{border-color:var(--fg2)}
   #tabla tfoot td.vacio{display:none}
 }
+/* leyendas, listas y gráfico diario */
+.col .b.a{background:var(--div);opacity:.5}
+.ley{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg2)}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--div);margin-right:5px;vertical-align:-1px}
+.ley i.a{opacity:.5}
+.lista{display:grid;gap:0;font-size:13px}
+.lista .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--grid)}
+.lista .it:last-child{border-bottom:0}
+.lista .it b{font-weight:600}
+.lista .it .m{font-family:var(--mono);text-align:right}
+.lista .it small{grid-column:1/-1}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--fg2);margin-left:6px;white-space:nowrap}
+.tag.ok{border-color:var(--upbar);color:var(--up)}
+#evo svg,#metaG svg{display:block;width:100%;height:240px;overflow:visible}
+#evo text,#metaG text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+/* meta 2036 */
+.metaIn{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 14px;align-items:end}
+.metaIn label{display:grid;gap:3px;font-size:12.5px;color:var(--fg2)}
+.metaIn input{font:inherit;font-family:var(--mono);font-size:14px;padding:7px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg);width:100%}
+.metaIn label.chk{display:flex;gap:6px;align-items:center;align-self:end;padding-bottom:8px}
+.metaIn label.chk input{width:auto}
+.metaRes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.metaRes .kpi .v{font-size:19px}
+#meta .tw{overflow-x:auto}
+#metaT td:first-child{font-family:var(--mono)}
+#metaT tr.ok td{color:var(--up)}
+#metaT tr.fin td{font-weight:600;background:var(--track)}
+@media (max-width:1180px){#metaT{font-size:12px}#metaT th,#metaT td{padding:5px 4px}}
+@media (max-width:600px){#metaT th:nth-child(3),#metaT td:nth-child(3){display:none}}
 /* textos justificados */
 .card p.sub,.nota,.lista small,.kpi .s{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #tip{position:fixed;z-index:9;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12.5px;line-height:1.45;padding:7px 10px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .1s}
@@ -138,6 +167,23 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
     <section class="card">
       <div><h2>Valor de tu cartera día a día</h2><p class="sub" id="evoSub"></p></div>
       <div id="evo"></div>
+    </section>
+    <section class="card" id="meta">
+      <div><h2>Meta 2036: ¿cuándo vivo de los dividendos?</h2><p class="sub">Proyección año a año partiendo del valor de hoy de tu cartera. Todo se expresa en pesos de hoy (descontando la inflación), para compararlo directo con tu meta. Cambia cualquier supuesto y se recalcula al instante. Es una simulación con supuestos fijos: la bolsa real sube y baja, y los dividendos cambian año a año.</p></div>
+      <div class="metaIn">
+        <label>Meta mensual (pesos de hoy)<input id="mMeta" type="number" step="100000" min="0" value="3000000"></label>
+        <label>Aporte mensual<input id="mAp" type="number" step="50000" min="0" value="1000000"></label>
+        <label>Rendimiento por dividendo (%/año)<input id="mRend" type="number" step="0.1" min="0" max="20"></label>
+        <label>Crecimiento del precio (%/año)<input id="mCrec" type="number" step="0.5" min="-10" max="20" value="3"></label>
+        <label>Inflación (%/año)<input id="mInf" type="number" step="0.5" min="0" max="20" value="3"></label>
+        <label>Otros ingresos al mes (arriendos, etc.)<input id="mOtros" type="number" step="50000" min="0" value="0"></label>
+        <label>Año meta<input id="mAnio" type="number" step="1" min="2027" max="2070" value="2036"></label>
+        <label class="chk"><input id="mAjus" type="checkbox" checked> El aporte sube con la inflación</label>
+        <label class="chk"><input id="mReinv" type="checkbox" checked> Reinvertir los dividendos</label>
+      </div>
+      <div class="metaRes" id="metaRes"></div>
+      <div id="metaG"></div>
+      <div class="tw"><table id="metaT"></table></div>
     </section>
     <section class="card">
       <div><h2>Dividendos cobrados por mes</h2><p class="sub" id="mesSub"></p></div>
@@ -257,6 +303,73 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
     }).join("");
   }
 
+  // ---------- Meta 2036: proyección mes a mes, resultados en pesos de hoy
+  const META = {v0: 0, rend: 0.045, mes: 0, anio: 2026};
+  function simular(o, aporte){
+    // o: {v0, y, g, inf, otros, reinv, ajus, hasta}; devuelve una fila por cada fin de año
+    const gm = (1 + o.g) ** (1 / 12) - 1, filas = [];
+    let V = o.v0, aport = 0, cobr = 0, t = 0;
+    for (let a = META.anio; a <= o.hasta; a++) {
+      for (let m = a === META.anio ? META.mes + 1 : 0; m < 12; m++) {
+        t++;
+        const defl = (1 + o.inf) ** (t / 12);
+        const div = V * o.y / 12, ap = aporte * (o.ajus ? defl : 1);
+        V = V * (1 + gm) + ap + (o.reinv ? div : 0);
+        aport += ap; cobr += o.reinv ? 0 : div;
+      }
+      const defl = (1 + o.inf) ** (t / 12);
+      filas.push({a, V, Vr: V / defl, divR: V * o.y / 12 / defl, aport, cobr});
+    }
+    return filas;
+  }
+  function metaCalc(){
+    if (!META.v0) return;
+    const num = id => { const x = parseFloat($(id).value); return isFinite(x) ? x : 0; };
+    if ($("#mRend").value === "") $("#mRend").value = (Math.round(META.rend * 1000) / 10).toFixed(1);
+    const meta = num("#mMeta"), A = num("#mAp"), otros = num("#mOtros");
+    const anioM = Math.max(META.anio + 1, Math.round(num("#mAnio")));
+    const o = {v0: META.v0, y: num("#mRend") / 100, g: num("#mCrec") / 100, inf: num("#mInf") / 100, reinv: $("#mReinv").checked, ajus: $("#mAjus").checked, hasta: anioM + 30};
+    const F = simular(o, A), falta = Math.max(meta - otros, 0);
+    const lograda = F.find(f => f.divR >= falta);
+    const enMeta = F.find(f => f.a === anioM);
+    // aporte necesario para llegar justo en el año meta (bisección)
+    let apNec = null;
+    if (o.y > 0) {
+      const ok = ap => simular({...o, hasta: anioM}, ap).at(-1).divR >= falta;
+      if (ok(0)) apNec = 0;
+      else if (ok(5e7)) { let lo = 0, hi = 5e7; for (let i = 0; i < 50; i++) { const mid = (lo + hi) / 2; if (ok(mid)) hi = mid; else lo = mid; } apNec = Math.ceil(hi / 10000) * 10000; }
+    }
+    const capNec = o.y > 0 ? falta * 12 / o.y : null;
+    const R = [
+      [`Ingreso al mes en ${anioM}`, `${$f(enMeta.divR + otros)}`, `${pu((enMeta.divR + otros) / (meta || 1), 0)} de tu meta de ${$f(meta)}` + (otros ? ` (dividendos ${$f(enMeta.divR)} + otros ${$f(otros)})` : "")],
+      ["Año en que alcanzas la meta", lograda ? String(lograda.a) : `después de ${o.hasta}`, lograda ? (lograda.a <= anioM ? `<span class="up">${anioM - lograda.a ? anioM - lograda.a + " años antes de lo previsto" : "justo a tiempo"}</span>` : `<span class="down">${lograda.a - anioM} años después de ${anioM}</span>`) : "con estos supuestos no se alcanza en el horizonte"],
+      [`Aporte mensual para llegar en ${anioM}`, apNec == null ? "más de $50 M" : $f(apNec), apNec == null ? "" : apNec <= A ? `<span class="up">tu aporte actual (${$f(A)}) alcanza</span>` : `<span class="down">${$f(apNec - A)} más que hoy</span>${o.ajus ? ", subiendo con la inflación" : ""}`],
+      ["Capital necesario (pesos de hoy)", capNec != null ? $m(capNec) : "s/d", capNec != null ? `para cubrir ${$f(falta)} al mes con un ${pu(o.y)} de rendimiento · en ${anioM} tendrías ${$m(enMeta.Vr)}` : ""],
+    ];
+    $("#metaRes").innerHTML = R.map(k => `<div class="kpi"><span class="l">${k[0]}</span><span class="v">${k[1]}</span><span class="s">${k[2]}</span></div>`).join("");
+    // gráfico: dividendos al mes (pesos de hoy) vs. la meta
+    const G = F.filter(f => f.a <= Math.max(anioM, lograda ? lograda.a : 0) + 2 && f.a <= o.hasta);
+    const box = $("#metaG"), W = Math.max(box.clientWidth, 300), Hh = 240, L = 8, Rm = 78, T = 12, B = 24;
+    const hi = Math.max(meta, ...G.map(f => f.divR + otros)) * 1.08, Yp = v => T + (1 - v / hi) * (Hh - T - B);
+    const bw = (W - L - Rm) / G.length, ticks = [0, 1, 2, 3, 4].map(k => hi / 4 * k);
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Dividendos al mes proyectados frente a la meta">` +
+      ticks.map(v => `<line x1="${L}" x2="${W - Rm}" y1="${Yp(v)}" y2="${Yp(v)}" stroke="var(--grid)"/><text x="${W - Rm + 6}" y="${Yp(v) + 4}">$${nf(v / 1e6, 1)} M</text>`).join("") +
+      G.map((f, i) => { const x = L + i * bw + bw * 0.15, w = bw * 0.7, yv = Yp(f.divR), yo = Yp(f.divR + otros);
+        const tip = `<b>${f.a}</b><br>Dividendos: ${$f(f.divR)} al mes${otros ? `<br>Otros ingresos: ${$f(otros)}` : ""}<br>Cartera: ${$m(f.Vr)} (pesos de hoy)<br>${$m(f.V)} en pesos de ${f.a}<br>Aportado desde hoy: ${$m(f.aport)}`;
+        return `<g data-tip="${esc(tip)}"><rect x="${x}" y="${T}" width="${w}" height="${Hh - T - B}" fill="transparent"/>` +
+          (otros ? `<rect x="${x}" y="${yo}" width="${w}" height="${yv - yo}" fill="var(--price)" opacity=".45" rx="2"/>` : "") +
+          `<rect x="${x}" y="${yv}" width="${w}" height="${Hh - B - yv}" fill="${f.a === anioM ? "var(--fit)" : "var(--div)"}" rx="2"/></g>` +
+          (i % Math.ceil(30 / bw) === 0 ? `<text x="${x + w / 2}" y="${Hh - 6}" text-anchor="middle">${G.length > 12 ? "’" + String(f.a).slice(2) : f.a}</text>` : ""); }).join("") +
+      `<line x1="${L}" x2="${W - Rm}" y1="${Yp(meta)}" y2="${Yp(meta)}" stroke="var(--fg)" stroke-dasharray="5 4"/><text x="${L + 4}" y="${Yp(meta) - 6}" style="fill:var(--fg)">meta ${$f(meta)} al mes</text></svg>` +
+      `<div class="ley"><span><i></i>Dividendos al mes, en pesos de hoy</span>${otros ? `<span><i style="background:var(--price);opacity:.45"></i>Otros ingresos</span>` : ""}<span><i style="background:var(--fit)"></i>Año meta</span><span>— — Meta ${$f(meta)}</span></div>`;
+    // tabla año a año
+    const filasT = F.filter(f => f.a <= Math.max(anioM, lograda ? Math.min(lograda.a, anioM + 10) : anioM));
+    $("#metaT").innerHTML = `<thead><tr><th>Año</th><th>Cartera (pesos de hoy)</th><th>Cartera (pesos de cada año)</th><th>Dividendos al mes (pesos de hoy)</th><th>% de la meta</th><th>Aportado desde hoy</th></tr></thead><tbody>` +
+      filasT.map(f => `<tr class="${f.a === anioM ? "fin" : ""}${f.divR + otros >= meta ? " ok" : ""}"><td data-l="Año">${f.a}</td><td data-l="Cartera hoy">${$m(f.Vr)}</td><td data-l="Nominal">${$m(f.V)}</td><td data-l="Div. al mes">${$f(f.divR)}</td><td data-l="% meta">${pu((f.divR + otros) / (meta || 1), 0)}</td><td data-l="Aportado">${$m(f.aport)}</td></tr>`).join("") + "</tbody>";
+  }
+  document.addEventListener("input", ev => { if (ev.target.closest(".metaIn")) metaCalc(); });
+  addEventListener("resize", () => { clearTimeout(META.rz); META.rz = setTimeout(metaCalc, 150); });
+
   // ---------- página
   async function pintar(d){
     let Q = {}, R = {};
@@ -316,6 +429,10 @@ th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--fg)}
       ["Retorno total", conPx.length ? `<span class="${capTot + divTot >= 0 ? "up" : "down"}">${pc((capTot + divTot) / costo)}</span>` : "s/d", `${$m(capTot + divTot)}: precio ${$m(capTot)} + dividendos ${$m(divTot)}`],
     ];
     $("#kpis").innerHTML = K.map(k => `<div class="kpi"><span class="l">${k[0]}</span><span class="v">${k[1]}</span><span class="s">${k[2]}</span></div>`).join("");
+    META.v0 = completo ? valor : valor + (costo - costoPx) || costo;
+    META.rend = META.v0 ? ult12 / META.v0 : 0.045;
+    META.mes = hoy.getMonth(); META.anio = Y;
+    metaCalc();
 
     // por mes
     const mx = Math.max(...meses.map(x => x.v), 1);
