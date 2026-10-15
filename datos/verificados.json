@@ -1,459 +1,816 @@
 {
-  "_info": "Datos verificados con fuentes primarias (empresas, CMF, juntas de accionistas). Tienen prioridad sobre Yahoo Finance. div = dividendos REGULARES por acción pagados en cada año calendario (sin dividendos eventuales/extraordinarios). ni = utilidad atribuible por año fiscal (en millones; en malls, utilidad distribuible sin revalorizaciones). po = payout del último ejercicio. deuda = indicador verificado (nd = deuda neta/EBITDA; ltv = deuda neta del holding / valor).",
-  "CHILE": {
-    "div": {
-      "2021": 2.1805,
-      "2022": 5.3439,
-      "2023": 8.582,
-      "2024": 8.0772,
-      "2025": 9.8536
-    },
-    "ni": [
-      [
-        2022,
-        1409433
-      ],
-      [
-        2023,
-        1243634
-      ],
-      [
-        2024,
-        1207392
-      ],
-      [
-        2025,
-        1192262
-      ]
-    ],
-    "po": 0.847,
-    "roe": 0.219,
-    "nota": "Dividendos, utilidades y payout verificados con estados financieros CMF y acuerdos de junta (oct 2026). Utilidad 2022 inflada por la alta inflación.",
-    "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-001.pdf",
-    "verificado": "2026-10-04"
+ "_info": "Datos verificados con fuentes primarias (empresas, CMF, juntas de accionistas). Tienen prioridad sobre Yahoo Finance. div = dividendos REGULARES por acción pagados en cada año calendario (sin dividendos eventuales/extraordinarios). ni = utilidad atribuible por año fiscal (en millones; en malls, utilidad distribuible sin revalorizaciones). po = payout del último ejercicio. deuda = indicador verificado (nd = deuda neta/EBITDA; ltv = deuda neta del holding / valor).",
+ "CHILE": {
+  "div": {
+   "2021": 2.1805,
+   "2022": 5.3439,
+   "2023": 8.582,
+   "2024": 8.0772,
+   "2025": 9.8536
   },
-  "BSANTANDER": {
-    "div": {
-      "2021": 1.6475,
-      "2022": 2.4674,
-      "2023": 2.5747,
-      "2024": 1.8439,
-      "2025": 3.1857
-    },
-    "ni": [
-      [
-        2022,
-        808651
-      ],
-      [
-        2023,
-        496404
-      ],
-      [
-        2024,
-        857623
-      ],
-      [
-        2025,
-        1053209
-      ]
-    ],
-    "po": 0.6,
-    "roe": 0.235,
-    "nota": "Dividendos, utilidades y payout (60% de la utilidad 2025) verificados con estados financieros CMF y acuerdos de junta.",
-    "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-037.pdf",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    1409433
+   ],
+   [
+    2023,
+    1243634
+   ],
+   [
+    2024,
+    1207392
+   ],
+   [
+    2025,
+    1192262
+   ]
+  ],
+  "po": 0.847,
+  "roe": 0.219,
+  "nota": "Dividendos, utilidades y payout verificados con estados financieros CMF y acuerdos de junta (oct 2026). Utilidad 2022 inflada por la alta inflación.",
+  "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-001.pdf",
+  "verificado": "2026-10-04"
+ },
+ "BSANTANDER": {
+  "div": {
+   "2021": 1.6475,
+   "2022": 2.4674,
+   "2023": 2.5747,
+   "2024": 1.8439,
+   "2025": 3.1857
   },
-  "ITAUCL": {
-    "div": {
-      "2021": 0,
-      "2022": 385.24,
-      "2023": 601.48,
-      "2024": 492.12,
-      "2025": 522.27
-    },
-    "ni": [
-      [
-        2022,
-        433744
-      ],
-      [
-        2023,
-        354887
-      ],
-      [
-        2024,
-        376627
-      ],
-      [
-        2025,
-        428092
-      ]
-    ],
-    "po": 0.6,
-    "nota": "Verificado con CMF y juntas: no pagó dividendo en 2021 (pérdida 2020); montos ajustados por la agrupación de acciones 4.500:1 de 2023; payout subió de 30% a 60% con la utilidad 2025.",
-    "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-039.pdf",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    808651
+   ],
+   [
+    2023,
+    496404
+   ],
+   [
+    2024,
+    857623
+   ],
+   [
+    2025,
+    1053209
+   ]
+  ],
+  "po": 0.6,
+  "roe": 0.235,
+  "nota": "Dividendos, utilidades y payout (60% de la utilidad 2025) verificados con estados financieros CMF y acuerdos de junta.",
+  "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-037.pdf",
+  "verificado": "2026-10-04"
+ },
+ "ITAUCL": {
+  "div": {
+   "2021": 0,
+   "2022": 385.24,
+   "2023": 601.48,
+   "2024": 492.12,
+   "2025": 522.27
   },
-  "BCI": {
-    "ni": [
-      [
-        2022,
-        821024
-      ],
-      [
-        2023,
-        682571
-      ],
-      [
-        2024,
-        801642
-      ],
-      [
-        2025,
-        996006
-      ]
-    ],
-    "po": 0.33,
-    "roe": 0.135,
-    "nota": "Verificado con estados financieros CMF e informes del banco: utilidad 2025 de $996 mil millones, payout 32,9% ($1.500 por acción en 2026), ROE anualizado ~13–14%, CET1 11,2%. Dividendos históricos ajustados por acciones liberadas y el aumento de capital de 2023.",
-    "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-016.pdf",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    433744
+   ],
+   [
+    2023,
+    354887
+   ],
+   [
+    2024,
+    376627
+   ],
+   [
+    2025,
+    428092
+   ]
+  ],
+  "po": 0.6,
+  "nota": "Verificado con CMF y juntas: no pagó dividendo en 2021 (pérdida 2020); montos ajustados por la agrupación de acciones 4.500:1 de 2023; payout subió de 30% a 60% con la utilidad 2025.",
+  "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-039.pdf",
+  "verificado": "2026-10-04"
+ },
+ "BCI": {
+  "ni": [
+   [
+    2022,
+    821024
+   ],
+   [
+    2023,
+    682571
+   ],
+   [
+    2024,
+    801642
+   ],
+   [
+    2025,
+    996006
+   ]
+  ],
+  "po": 0.33,
+  "roe": 0.135,
+  "nota": "Verificado con estados financieros CMF e informes del banco: utilidad 2025 de $996 mil millones, payout 32,9% ($1.500 por acción en 2026), ROE anualizado ~13–14%, CET1 11,2%. Dividendos históricos ajustados por acciones liberadas y el aumento de capital de 2023.",
+  "fuente": "https://www.cmfchile.cl/bancos/estados_anuales/2025/Bancos-2025/202512-016.pdf",
+  "verificado": "2026-10-04"
+ },
+ "ANDINA-B": {
+  "div": {
+   "2021": 117.7,
+   "2022": 127.6,
+   "2023": 127.6,
+   "2024": 140.8,
+   "2025": 215.6
   },
-  "ANDINA-B": {
-    "div": {
-      "2021": 117.7,
-      "2022": 127.6,
-      "2023": 127.6,
-      "2024": 140.8,
-      "2025": 215.6
-    },
-    "ni": [
-      [
-        2022,
-        125498
-      ],
-      [
-        2023,
-        171441
-      ],
-      [
-        2024,
-        232663
-      ],
-      [
-        2025,
-        268697
-      ]
-    ],
-    "po": 0.581,
-    "roe": 0.232,
-    "deuda": {
-      "t": "nd",
-      "x": 1.2
-    },
-    "nota": "Verificado con la empresa: sin dividendos eventuales (2022: $176; 2023: $55; 2024: $33 por acción). Payout real 58–88% (Yahoo mostraba 31%, error).",
-    "fuente": "https://koandina-prod-files-bucket.s3.amazonaws.com/wp-content/uploads/2026/01/27220020/4Q25-PR-EN.pdf",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    125498
+   ],
+   [
+    2023,
+    171441
+   ],
+   [
+    2024,
+    232663
+   ],
+   [
+    2025,
+    268697
+   ]
+  ],
+  "po": 0.581,
+  "roe": 0.232,
+  "deuda": {
+   "t": "nd",
+   "x": 1.2
   },
-  "ANDINA-A": {
-    "div": {
-      "2021": 107,
-      "2022": 116,
-      "2023": 116,
-      "2024": 128,
-      "2025": 196
-    },
-    "ni": [
-      [
-        2022,
-        125498
-      ],
-      [
-        2023,
-        171441
-      ],
-      [
-        2024,
-        232663
-      ],
-      [
-        2025,
-        268697
-      ]
-    ],
-    "po": 0.581,
-    "roe": 0.232,
-    "deuda": {
-      "t": "nd",
-      "x": 1.2
-    },
-    "nota": "Verificado con la empresa: sin dividendos eventuales (2022: $160; 2023: $50; 2024: $30 por acción). Payout real 58–88% (Yahoo mostraba 28%, error).",
-    "fuente": "https://koandina-prod-files-bucket.s3.amazonaws.com/wp-content/uploads/2026/01/27220020/4Q25-PR-EN.pdf",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con la empresa: sin dividendos eventuales (2022: $176; 2023: $55; 2024: $33 por acción). Payout real 58–88% (Yahoo mostraba 31%, error).",
+  "fuente": "https://koandina-prod-files-bucket.s3.amazonaws.com/wp-content/uploads/2026/01/27220020/4Q25-PR-EN.pdf",
+  "verificado": "2026-10-04"
+ },
+ "ANDINA-A": {
+  "div": {
+   "2021": 107,
+   "2022": 116,
+   "2023": 116,
+   "2024": 128,
+   "2025": 196
   },
-  "ENELGXCH": {
-    "div": {
-      "2021": 21.602,
-      "2022": 4.2408,
-      "2023": 21.8575,
-      "2024": 36.9982,
-      "2025": 41.9041
-    },
-    "po": 0.7,
-    "nota": "Verificado con hechos esenciales de Enel: excluye el dividendo eventual de mayo 2025 ($14,07); el de 2021 se mantiene porque reemplazó al dividendo de 2020. Ojo: Enel Chile controla 93,55% (solo ~6,5% en bolsa).",
-    "fuente": "https://www.enel.cl/en/investors/investor-enel-generacion/corporate-governance/significant-events.html",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    125498
+   ],
+   [
+    2023,
+    171441
+   ],
+   [
+    2024,
+    232663
+   ],
+   [
+    2025,
+    268697
+   ]
+  ],
+  "po": 0.581,
+  "roe": 0.232,
+  "deuda": {
+   "t": "nd",
+   "x": 1.2
   },
-  "ENELCHILE": {
-    "div": {
-      "2021": 3.0774,
-      "2022": 0.36934,
-      "2023": 5.43072,
-      "2024": 4.5792,
-      "2025": 1.04901
-    },
-    "po": 0.5,
-    "nota": "Verificado con hechos esenciales de Enel: Yahoo omitía el dividendo de mayo 2023 ($5,11); excluye el eventual de mayo 2025 ($3,20). Política: 50% de la utilidad.",
-    "fuente": "https://www.enel.cl/en/investors/investor-enel-chile/corporate-governance/significant-events.html",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con la empresa: sin dividendos eventuales (2022: $160; 2023: $50; 2024: $30 por acción). Payout real 58–88% (Yahoo mostraba 28%, error).",
+  "fuente": "https://koandina-prod-files-bucket.s3.amazonaws.com/wp-content/uploads/2026/01/27220020/4Q25-PR-EN.pdf",
+  "verificado": "2026-10-04"
+ },
+ "ENELGXCH": {
+  "div": {
+   "2021": 21.602,
+   "2022": 4.2408,
+   "2023": 21.8575,
+   "2024": 36.9982,
+   "2025": 41.9041
   },
-  "AGUAS-A": {
-    "po": 0.75,
-    "roe": 0.106,
-    "deuda": {
-      "t": "nd",
-      "x": 3.61
-    },
-    "nota": "Verificado con la empresa: los datos de Yahoo coinciden. Desde 2024 reparte 70–75% de la utilidad (antes ~100%) para financiar inversiones.",
-    "fuente": "https://www.aguasandinasinversionistas.cl/en/shareholders/dividends",
-    "verificado": "2026-10-04"
+  "po": 0.7,
+  "nota": "Verificado con hechos esenciales de Enel: excluye el dividendo eventual de mayo 2025 ($14,07); el de 2021 se mantiene porque reemplazó al dividendo de 2020. Ojo: Enel Chile controla 93,55% (solo ~6,5% en bolsa).",
+  "fuente": "https://www.enel.cl/en/investors/investor-enel-generacion/corporate-governance/significant-events.html",
+  "verificado": "2026-10-04"
+ },
+ "ENELCHILE": {
+  "div": {
+   "2021": 3.0774,
+   "2022": 0.36934,
+   "2023": 5.43072,
+   "2024": 4.5792,
+   "2025": 1.04901
   },
-  "LTM": {
-    "div": {
-      "2021": 0,
-      "2022": 0,
-      "2023": 0,
-      "2024": 0.26885,
-      "2025": 1.11079
-    },
-    "po": 0.3,
-    "roe": null,
-    "deuda": {
-      "t": "nd",
-      "x": 1.5
-    },
-    "nota": "Verificado con LATAM: Yahoo omitía el dividendo de 2024. ROE no comparable (patrimonio muy bajo tras el Chapter 11 y las recompras); paga el mínimo legal de 30%.",
-    "fuente": "https://ir.latam.com/Spanish/accion-y-deuda/dividend-history/default.aspx",
-    "verificado": "2026-10-04"
+  "po": 0.5,
+  "nota": "Verificado con hechos esenciales de Enel: Yahoo omitía el dividendo de mayo 2023 ($5,11); excluye el eventual de mayo 2025 ($3,20). Política: 50% de la utilidad.",
+  "fuente": "https://www.enel.cl/en/investors/investor-enel-chile/corporate-governance/significant-events.html",
+  "verificado": "2026-10-04"
+ },
+ "AGUAS-A": {
+  "po": 0.75,
+  "roe": 0.106,
+  "deuda": {
+   "t": "nd",
+   "x": 3.61
   },
-  "ILC": {
-    "ni": [
-      [
-        2022,
-        146534
-      ],
-      [
-        2023,
-        182618
-      ],
-      [
-        2024,
-        148244
-      ],
-      [
-        2025,
-        279957
-      ]
-    ],
-    "po": 0.3,
-    "roe": 0.222,
-    "deuda": {
-      "t": "ltv",
-      "x": 0.17
-    },
-    "nota": "Verificado con ILC: payout 30% de la utilidad (39% de la utilidad distribuible). Deuda medida a nivel holding (deuda neta ~$489 mil millones, ~17% del valor). Utilidad 2025 favorecida por el encaje de AFP Habitat.",
-    "fuente": "https://ilcinversiones.cl/app/uploads/2026/03/Informe-Trimestral-4Q25-vf.pdf",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con la empresa: los datos de Yahoo coinciden. Desde 2024 reparte 70–75% de la utilidad (antes ~100%) para financiar inversiones.",
+  "fuente": "https://www.aguasandinasinversionistas.cl/en/shareholders/dividends",
+  "verificado": "2026-10-04"
+ },
+ "LTM": {
+  "div": {
+   "2021": 0,
+   "2022": 0,
+   "2023": 0,
+   "2024": 0.26885,
+   "2025": 1.11079
   },
-  "MALLPLAZA": {
-    "ni": [
-      [
-        2023,
-        197540
-      ],
-      [
-        2024,
-        240900
-      ],
-      [
-        2025,
-        369312
-      ]
-    ],
-    "po": 0.4,
-    "roe": 0.077,
-    "deuda": {
-      "t": "nd",
-      "x": 3.3
-    },
-    "nota": "Verificado con la empresa: se usa la utilidad sin revalorizaciones (la reportada 2025 de $1,43 billones incluye ~$1 billón contable). Paga 40% de la utilidad distribuible. Aumento de capital de 11,7% en 2024.",
-    "fuente": "https://corporativo.mallplaza.com/es/informacion-bursatil/historial-de-dividendos/",
-    "verificado": "2026-10-04"
+  "po": 0.3,
+  "roe": null,
+  "deuda": {
+   "t": "nd",
+   "x": 1.5
   },
-  "CENCOMALLS": {
-    "div": {
-      "2021": 42.3,
-      "2022": 90,
-      "2023": 95,
-      "2024": 119,
-      "2025": 91
-    },
-    "ni": [
-      [
-        2022,
-        159829
-      ],
-      [
-        2023,
-        195300
-      ],
-      [
-        2024,
-        217389
-      ],
-      [
-        2025,
-        235070
-      ]
-    ],
-    "po": 0.54,
-    "roe": 0.079,
-    "deuda": {
-      "t": "nd",
-      "x": 2.1
-    },
-    "nota": "Verificado con la empresa: sin el dividendo eventual de 2021 ($30) y con el monto correcto de 2022 ($90). Utilidad distribuible (sin revalorizaciones). Payout bajó de ~91% a 54% en 2025.",
-    "fuente": "https://www.cencomalls.com/corporativo/inversionistas/informacion-de-la-accion",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con LATAM: Yahoo omitía el dividendo de 2024. ROE no comparable (patrimonio muy bajo tras el Chapter 11 y las recompras); paga el mínimo legal de 30%.",
+  "fuente": "https://ir.latam.com/Spanish/accion-y-deuda/dividend-history/default.aspx",
+  "verificado": "2026-10-04"
+ },
+ "ILC": {
+  "ni": [
+   [
+    2022,
+    146534
+   ],
+   [
+    2023,
+    182618
+   ],
+   [
+    2024,
+    148244
+   ],
+   [
+    2025,
+    279957
+   ]
+  ],
+  "po": 0.3,
+  "roe": 0.222,
+  "deuda": {
+   "t": "ltv",
+   "x": 0.17
   },
-  "FALABELLA": {
-    "ni": [
-      [
-        2023,
-        -34561
-      ],
-      [
-        2024,
-        435618
-      ],
-      [
-        2025,
-        820000
-      ]
-    ],
-    "po": 0.398,
-    "roe": 0.12,
-    "nota": "Verificado con juntas y resultados: utilidad sin revalorizaciones (2023: pérdida de $35 mil millones; 2024: $436 mil millones; 2025: ~$820 mil millones). Paga ~40% de la utilidad distribuible. ROE aproximado sobre utilidad recurrente.",
-    "fuente": "https://www.diarioestrategia.cl/texto-diario/mostrar/5813559/accionistas-falabella-eligieron-directores-aprobaron-reparto-dividendo",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con ILC: payout 30% de la utilidad (39% de la utilidad distribuible). Deuda medida a nivel holding (deuda neta ~$489 mil millones, ~17% del valor). Utilidad 2025 favorecida por el encaje de AFP Habitat.",
+  "fuente": "https://ilcinversiones.cl/app/uploads/2026/03/Informe-Trimestral-4Q25-vf.pdf",
+  "verificado": "2026-10-04"
+ },
+ "MALLPLAZA": {
+  "ni": [
+   [
+    2023,
+    197540
+   ],
+   [
+    2024,
+    240900
+   ],
+   [
+    2025,
+    369312
+   ]
+  ],
+  "po": 0.4,
+  "roe": 0.077,
+  "deuda": {
+   "t": "nd",
+   "x": 3.3
   },
-  "ZOFRI": {
-    "ni": [
-      [
-        2022,
-        16573.0
-      ],
-      [
-        2023,
-        17734.5
-      ],
-      [
-        2024,
-        18505.4
-      ],
-      [
-        2025,
-        19956.4
-      ]
-    ],
-    "po": 0.8,
-    "roe": 0.35,
-    "nota": "Verificado con CMF: dividendos de Yahoo correctos, reparte 80% de la utilidad, ROE 35% y sin deuda financiera. RIESGO: la concesión vence en 2030 y a octubre de 2026 el Gobierno aún no decide si la renueva.",
-    "fuente": "https://www.df.cl/regiones/tarapaca/subsecretaria-de-hacienda-asegura-que-la-renovacion-anticipada-de-la",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con la empresa: se usa la utilidad sin revalorizaciones (la reportada 2025 de $1,43 billones incluye ~$1 billón contable). Paga 40% de la utilidad distribuible. Aumento de capital de 11,7% en 2024.",
+  "fuente": "https://corporativo.mallplaza.com/es/informacion-bursatil/historial-de-dividendos/",
+  "verificado": "2026-10-04"
+ },
+ "CENCOMALLS": {
+  "div": {
+   "2021": 42.3,
+   "2022": 90,
+   "2023": 95,
+   "2024": 119,
+   "2025": 91
   },
-  "SCHWAGER": {
-    "ni": [
-      [
-        2022,
-        1685.9
-      ],
-      [
-        2023,
-        2069.6
-      ],
-      [
-        2024,
-        2715.3
-      ],
-      [
-        2025,
-        4074.3
-      ]
-    ],
-    "po": 0.5,
-    "roe": 0.148,
-    "nota": "Verificado con la memoria 2025 y hechos esenciales: los dividendos de Yahoo son reales (volvió a pagar con la utilidad 2023, tras 20 años sin dividendos). Paga 40–50% de la utilidad; ROE 2025 14,8%. Ojo: rinde solo ~1,8% y la fusión con Invaos (2026) emitió acciones nuevas.",
-    "fuente": "https://www.schwager.cl/wp-content/uploads/2026/06/Memoria_2025-1.pdf",
-    "verificado": "2026-10-04"
+  "ni": [
+   [
+    2022,
+    159829
+   ],
+   [
+    2023,
+    195300
+   ],
+   [
+    2024,
+    217389
+   ],
+   [
+    2025,
+    235070
+   ]
+  ],
+  "po": 0.54,
+  "roe": 0.079,
+  "deuda": {
+   "t": "nd",
+   "x": 2.1
   },
-  "LIPIGAS": {
-    "div": {
-      "2021": 294,
-      "2022": 238,
-      "2023": 281,
-      "2024": 413,
-      "2025": 502
-    },
-    "po": 0.79,
-    "deuda": {
-      "t": "nd",
-      "x": 1.28
-    },
-    "nota": "Verificado con la empresa (LipiAndes): sin el dividendo eventual de dic-2021 ($175) y con el total correcto de 2024 ($413; Yahoo mostraba $311). Reparte ~80% de la utilidad; deuda neta 1,3 veces el EBITDA (Feller Rate, AA).",
-    "fuente": "https://lipiandes.com/en/investors/informacion-para-el-accionista/dividend-information/",
-    "verificado": "2026-10-04"
+  "nota": "Verificado con la empresa: sin el dividendo eventual de 2021 ($30) y con el monto correcto de 2022 ($90). Utilidad distribuible (sin revalorizaciones). Payout bajó de ~91% a 54% en 2025.",
+  "fuente": "https://www.cencomalls.com/corporativo/inversionistas/informacion-de-la-accion",
+  "verificado": "2026-10-04"
+ },
+ "FALABELLA": {
+  "ni": [
+   [
+    2023,
+    -34561
+   ],
+   [
+    2024,
+    435618
+   ],
+   [
+    2025,
+    820000
+   ]
+  ],
+  "po": 0.398,
+  "roe": 0.12,
+  "nota": "Verificado con juntas y resultados: utilidad sin revalorizaciones (2023: pérdida de $35 mil millones; 2024: $436 mil millones; 2025: ~$820 mil millones). Paga ~40% de la utilidad distribuible. ROE aproximado sobre utilidad recurrente.",
+  "fuente": "https://www.diarioestrategia.cl/texto-diario/mostrar/5813559/accionistas-falabella-eligieron-directores-aprobaron-reparto-dividendo",
+  "verificado": "2026-10-04"
+ },
+ "ZOFRI": {
+  "ni": [
+   [
+    2022,
+    16573.0
+   ],
+   [
+    2023,
+    17734.5
+   ],
+   [
+    2024,
+    18505.4
+   ],
+   [
+    2025,
+    19956.4
+   ]
+  ],
+  "po": 0.8,
+  "roe": 0.35,
+  "nota": "Verificado con CMF: dividendos de Yahoo correctos, reparte 80% de la utilidad, ROE 35% y sin deuda financiera. RIESGO: la concesión vence en 2030 y a octubre de 2026 el Gobierno aún no decide si la renueva.",
+  "fuente": "https://www.df.cl/regiones/tarapaca/subsecretaria-de-hacienda-asegura-que-la-renovacion-anticipada-de-la",
+  "verificado": "2026-10-04"
+ },
+ "SCHWAGER": {
+  "ni": [
+   [
+    2022,
+    1685.9
+   ],
+   [
+    2023,
+    2069.6
+   ],
+   [
+    2024,
+    2715.3
+   ],
+   [
+    2025,
+    4074.3
+   ]
+  ],
+  "po": 0.5,
+  "roe": 0.148,
+  "nota": "Verificado con la memoria 2025 y hechos esenciales: los dividendos de Yahoo son reales (volvió a pagar con la utilidad 2023, tras 20 años sin dividendos). Paga 40–50% de la utilidad; ROE 2025 14,8%. Ojo: rinde solo ~1,8% y la fusión con Invaos (2026) emitió acciones nuevas.",
+  "fuente": "https://www.schwager.cl/wp-content/uploads/2026/06/Memoria_2025-1.pdf",
+  "verificado": "2026-10-04"
+ },
+ "LIPIGAS": {
+  "div": {
+   "2021": 294,
+   "2022": 238,
+   "2023": 281,
+   "2024": 413,
+   "2025": 502
   },
-  "PARAUCO": {
-    "ni": [
-      [
-        2023,
-        72578
-      ],
-      [
-        2024,
-        79006
-      ],
-      [
-        2025,
-        101343
-      ]
-    ],
-    "po": 0.49,
-    "roe": 0.102,
-    "deuda": {
-      "t": "nd",
-      "x": 5.6
-    },
-    "nota": "Verificado con juntas de accionistas y Moody's Local: paga 49% de la utilidad distribuible (sin revalorizaciones; Yahoo mostraba 20%). Deuda neta 5,6 veces el EBITDA (escala malls). Aumento de capital de 2026 (~8% más acciones).",
-    "fuente": "https://moodyslocal.cl/wp-content/uploads/2026/06/Parque-Arauco-Resena-Anual-2026.pdf",
-    "verificado": "2026-10-04"
+  "po": 0.79,
+  "deuda": {
+   "t": "nd",
+   "x": 1.28
   },
-  "IAM": {
-    "po": 0.73,
-    "nota": "Verificado con IAM: dividendos y utilidad de Yahoo correctos; traspasa a sus accionistas los dividendos de Aguas Andinas (payout 73% en 2025) y no tiene deuda propia. Su deuda se mide con la de Aguas Andinas.",
-    "fuente": "https://www.iam.cl/en/shareholders/dividends",
-    "verificado": "2026-10-04"
-  }
+  "nota": "Verificado con la empresa (LipiAndes): sin el dividendo eventual de dic-2021 ($175) y con el total correcto de 2024 ($413; Yahoo mostraba $311). Reparte ~80% de la utilidad; deuda neta 1,3 veces el EBITDA (Feller Rate, AA).",
+  "fuente": "https://lipiandes.com/en/investors/informacion-para-el-accionista/dividend-information/",
+  "verificado": "2026-10-04"
+ },
+ "PARAUCO": {
+  "ni": [
+   [
+    2023,
+    72578
+   ],
+   [
+    2024,
+    79006
+   ],
+   [
+    2025,
+    101343
+   ]
+  ],
+  "po": 0.49,
+  "roe": 0.102,
+  "deuda": {
+   "t": "nd",
+   "x": 5.6
+  },
+  "nota": "Verificado con juntas de accionistas y Moody's Local: paga 49% de la utilidad distribuible (sin revalorizaciones; Yahoo mostraba 20%). Deuda neta 5,6 veces el EBITDA (escala malls). Aumento de capital de 2026 (~8% más acciones).",
+  "fuente": "https://moodyslocal.cl/wp-content/uploads/2026/06/Parque-Arauco-Resena-Anual-2026.pdf",
+  "verificado": "2026-10-04"
+ },
+ "IAM": {
+  "po": 0.73,
+  "nota": "Verificado con IAM: dividendos y utilidad de Yahoo correctos; traspasa a sus accionistas los dividendos de Aguas Andinas (payout 73% en 2025) y no tiene deuda propia. Su deuda se mide con la de Aguas Andinas.",
+  "fuente": "https://www.iam.cl/en/shareholders/dividends",
+  "verificado": "2026-10-04"
+ },
+ "COPEC": {
+  "div": {
+   "2021": 473.2,
+   "2022": 354.11,
+   "2023": 264.12,
+   "2024": 224.24,
+   "2025": 228.91
+  },
+  "po": 0.3,
+  "ni": [
+   [
+    2022,
+    1466
+   ],
+   [
+    2023,
+    349
+   ],
+   [
+    2024,
+    1111
+   ],
+   [
+    2025,
+    877
+   ]
+  ],
+  "nota": "Dividendos declarados en US$ convertidos con el dólar observado de cada pago (sin eventuales). Yahoo exageraba 2021-2022, omitía el definitivo de mayo 2024 y marcaba 237 en 2025 (real 229). Payout ~30% de la utilidad (política: 40% de la utilidad distribuible).",
+  "fuente": "https://www.elmercurio.com/inversiones/acciones/ficha.aspx?id=COPEC",
+  "verificado": "2026-10-15"
+ },
+ "ANTARCHILE": {
+  "div": {
+   "2021": 961.19,
+   "2022": 284.22,
+   "2023": 747.22,
+   "2024": 470.71,
+   "2025": 388.01
+  },
+  "po": 0.3,
+  "ni": [
+   [
+    2022,
+    924
+   ],
+   [
+    2023,
+    234
+   ],
+   [
+    2024,
+    658
+   ],
+   [
+    2025,
+    520
+   ]
+  ],
+  "nota": "Dividendos N°38 a N°46 en US$ pagados en pesos (sin eventuales); Yahoo sobrestimaba todos los años (p. ej. 2023: 914 vs 747 real). Payout 2025 ~30% de la utilidad.",
+  "fuente": "https://www.diarioestrategia.cl/texto-diario/mostrar/5851291/antarchile-sa-cita-junta-ordinaria-accionistas-propone-dividendo",
+  "verificado": "2026-10-15"
+ },
+ "QUINENCO": {
+  "div": {
+   "2021": 245.61,
+   "2022": 468.33,
+   "2023": 637.85,
+   "2024": 272.19,
+   "2025": 300.71
+  },
+  "po": 1.0,
+  "ni": [
+   [
+    2022,
+    3535322
+   ],
+   [
+    2023,
+    841967
+   ],
+   [
+    2024,
+    664231
+   ],
+   [
+    2025,
+    680368
+   ]
+  ],
+  "deuda": {
+   "t": "ltv",
+   "x": 0.14
+  },
+  "nota": "Dividendos coinciden con Yahoo (página de dividendos de Quiñenco y hechos esenciales). Pero el payout del ejercicio 2025 es 100% de la utilidad (Yahoo: 30%). Holding con caja neta; LTV 14% según Fitch (abr-2026).",
+  "fuente": "https://www.quinenco.cl/en/dividends/",
+  "verificado": "2026-10-15"
+ },
+ "VAPORES": {
+  "div": {
+   "2021": 9.553,
+   "2022": 22.746,
+   "2023": 25.888,
+   "2024": 4.534,
+   "2025": 7.028
+  },
+  "po": 1.0,
+  "ni": [
+   [
+    2022,
+    5563
+   ],
+   [
+    2023,
+    258
+   ],
+   [
+    2024,
+    388.3
+   ],
+   [
+    2025,
+    213.1
+   ]
+  ],
+  "nota": "Tabla oficial de dividendos de CSAV. Yahoo mezclaba eventuales con regulares (2024: $15,63 eventuales; 2025: $3,85). Reparte el 100% de la utilidad distribuible; con los eventuales de 2026, en torno a 227%.",
+  "fuente": "https://www.csav.com/dividends/",
+  "verificado": "2026-10-15"
+ },
+ "ENELAM": {
+  "div": {
+   "2021": 2.9509,
+   "2022": 1.6923,
+   "2023": 0,
+   "2024": 2.2017,
+   "2025": 6.9861
+  },
+  "po": 0.3,
+  "ni": [
+   [
+    2022,
+    -44
+   ],
+   [
+    2023,
+    864
+   ],
+   [
+    2024,
+    2589
+   ],
+   [
+    2025,
+    960
+   ]
+  ],
+  "deuda": {
+   "t": "nd",
+   "x": 1.13
+  },
+  "nota": "Dividendos en US$ × dólar observado de cada aviso; 2023 = 0 es correcto (pérdida 2022). Yahoo convertía todo a ~979 CLP/US$ fijo. Payout 30%; deuda neta 1,1 veces el EBITDA (análisis razonado 4T25).",
+  "fuente": "https://www.enelamericas.com/content/dam/enel-americas/investor/presentaciones-de-resultados/resultados-trimestrales/análisis-razonado/2025/Analisis-Razonado-Q4-FY-2025.pdf",
+  "verificado": "2026-10-15"
+ },
+ "MINERA": {
+  "div": {
+   "2021": 3014,
+   "2022": 1317.1,
+   "2023": 833.1,
+   "2024": 1084.6,
+   "2025": 752.98
+  },
+  "po": 0.27,
+  "ni": [
+   [
+    2022,
+    413.9
+   ],
+   [
+    2023,
+    333.1
+   ],
+   [
+    2024,
+    244.0
+   ],
+   [
+    2025,
+    168.7
+   ]
+  ],
+  "nota": "Dividendos en US$ × dólar observado. Yahoo dejaba 2024 sin convertir ($1,17 = US$) y convertía a ~979 fijo. 2021 aproximado: total pagado sin el eventual de oct-2021 (US$4,864). Payout 2025 27% de la utilidad.",
+  "fuente": "https://www.minera.cl/wp-content/uploads/2023/04/minera_memoria_2022.pdf",
+  "verificado": "2026-10-15"
+ },
+ "SOQUICOM": {
+  "div": {
+   "2021": 19.3679,
+   "2022": 46.1701,
+   "2023": 41.2764,
+   "2024": 33.328,
+   "2025": 30.396
+  },
+  "po": 1.0,
+  "ni": [
+   [
+    2023,
+    9.749
+   ],
+   [
+    2024,
+    8.799
+   ],
+   [
+    2025,
+    7.677
+   ]
+  ],
+  "nota": "2025 no es 0: pagó $30,40 el 9-may-2025 (Yahoo lo omitía) y convertía a ~979 fijo. Excluye eventuales de 2021. Política: reparte 100% de la utilidad.",
+  "fuente": "https://anlpubxgxwsaypiyrmec.storage.supabase.co/storage/v1/object/public/analisis-razonado/79768170/hechos_relevantes/hechos_relevantes_79768170_2026Q2.pdf",
+  "verificado": "2026-10-15"
+ },
+ "EMBONOR-B": {
+  "div": {
+   "2021": 44.0,
+   "2022": 102.0,
+   "2023": 80.0,
+   "2024": 104.0,
+   "2025": 66.0
+  },
+  "po": 0.74,
+  "ni": [
+   [
+    2022,
+    87239
+   ],
+   [
+    2023,
+    71887
+   ],
+   [
+    2024,
+    74285
+   ],
+   [
+    2025,
+    60006
+   ]
+  ],
+  "deuda": {
+   "t": "nd",
+   "x": 1.1
+  },
+  "nota": "Yahoo omitía el definitivo de may-2024 ($62) e incluía el eventual de nov-2021 ($97). Payout 2025 74% de la utilidad (Yahoo: 21%); deuda neta 1,1 veces el EBITDA (Memoria 2025).",
+  "fuente": "https://es.marketscreener.com/noticias/coca-cola-embonor-s-a-memoria-2025-ce7e50d8d980ff27",
+  "verificado": "2026-10-15"
+ },
+ "ENTEL": {
+  "div": {
+   "2021": 139,
+   "2022": 300,
+   "2023": 94,
+   "2024": 285.4419,
+   "2025": 244
+  },
+  "po": 0.4,
+  "ni": [
+   [
+    2022,
+    456787
+   ],
+   [
+    2023,
+    88884
+   ],
+   [
+    2024,
+    67672
+   ],
+   [
+    2025,
+    191396
+   ]
+  ],
+  "deuda": {
+   "t": "nd",
+   "x": 2.47
+  },
+  "nota": "Yahoo sumaba eventuales ($700 en nov-2021 y $470 en may-2022). Payout del ejercicio 2025: 40% (80% en 2023-2024). Deuda neta 2,5 veces el EBITDA (Yahoo: 3,7x).",
+  "fuente": "https://entel.cdn.modyo.com/uploads/7380fac5-17ab-49a2-9ca5-0956ce0ba76e/original/4Q_and_Full_Year_2025_Results.pdf",
+  "verificado": "2026-10-15"
+ },
+ "SMU": {
+  "div": {
+   "2021": 9.946,
+   "2022": 16.87734,
+   "2023": 10.86407,
+   "2024": 9.07605,
+   "2025": 8.76268
+  },
+  "po": 0.75,
+  "ni": [
+   [
+    2022,
+    132088
+   ],
+   [
+    2023,
+    88784
+   ],
+   [
+    2024,
+    48750
+   ],
+   [
+    2025,
+    63123
+   ]
+  ],
+  "deuda": {
+   "t": "nd",
+   "x": 4.43
+  },
+  "nota": "Dividendos de Yahoo correctos; payout 75%. Deuda financiera neta / EBITDA sin arriendos 4,4x (jun-2026); el 11,6x de Yahoo incluía arriendos y estaba mal calculado.",
+  "fuente": "https://anlpubxgxwsaypiyrmec.storage.supabase.co/storage/v1/object/public/analisis-razonado/76012676/analisis_razonado/analisis_razonado_76012676_2026Q2.pdf",
+  "verificado": "2026-10-15"
+ },
+ "SONDA": {
+  "div": {
+   "2021": 30.26548,
+   "2022": 7.07321,
+   "2023": 22.71585,
+   "2024": 14.84664,
+   "2025": 17.09694
+  },
+  "po": 0.3,
+  "ni": [
+   [
+    2022,
+    35502
+   ],
+   [
+    2023,
+    38151
+   ],
+   [
+    2024,
+    31901
+   ],
+   [
+    2025,
+    16969
+   ]
+  ],
+  "nota": "Yahoo ajustaba la serie por el aumento de capital de 2026 y omitía el provisorio de 2023 ($9,41). Payout: 50% de la utilidad en 2022-2024 y 30% en 2025.",
+  "fuente": "https://anlpubxgxwsaypiyrmec.storage.supabase.co/storage/v1/object/public/analisis-razonado/83628100/hechos_relevantes/hechos_relevantes_83628100_2024Q3.pdf",
+  "verificado": "2026-10-15"
+ }
 }
