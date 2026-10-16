@@ -1,4 +1,4 @@
-## Ranking de dividendos — 16 de octubre de 2026 a las 16:41
+## Ranking de dividendos — 16 de octubre de 2026 a las 18:41
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -18,7 +18,7 @@
 **Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):
 1. **ANDINA-B** (84,5 pts, puesto 1). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 4,7% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente).
 2. **CENCOMALLS** (76,9 pts, puesto 8). Por qué: está 14% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 3,4% en 12 meses. Ojo: ROE bajo, rinde menos que su promedio histórico (precio exigente).
-3. **ENELGXCH** (77,9 pts, puesto 5). Por qué: está 12% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 6,9% en 12 meses. Ojo: utilidades que no crecen, rinde menos que su promedio histórico (precio exigente), se transa poco.
+3. **ENELGXCH** (77,9 pts, puesto 5). Por qué: está 12% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 7,0% en 12 meses. Ojo: utilidades que no crecen, rinde menos que su promedio histórico (precio exigente), se transa poco.
 4. **ANDINA-A** (81,4 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,3% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
 5. **PARAUCO** (77,5 pts, puesto 7). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,2% en 12 meses. Ojo: ROE bajo, rinde menos que su promedio histórico (precio exigente).
 
