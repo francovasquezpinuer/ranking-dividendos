@@ -519,11 +519,17 @@ VIVO_CSS = """<style>
 #vivo .dot.on{background:var(--up);animation:vpulse 2s infinite}
 @keyframes vpulse{50%{opacity:.35}}
 #vivo .idx{font-family:var(--mono);font-size:13px;color:var(--fg)}
-#vivo .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--rule)}
-#vivo .tabs button{font:inherit;font-size:13px;background:none;border:0;border-bottom:2px solid transparent;padding:6px 8px;color:var(--fg2);cursor:pointer;margin-bottom:-1px;white-space:nowrap}
-#vivo .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--fit);font-weight:600}
-#vivo .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(168px,1fr);gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
-#vivo .q{border:1px solid var(--rule);border-radius:10px;padding:9px 11px;background:var(--bg);display:grid;gap:2px;font-size:12.5px;min-width:0}
+#vivo .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#vivo .tabs button{font:inherit;font-size:13px;line-height:1.2;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:8px 6px;color:var(--fg2);cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#vivo .tabs button:hover{color:var(--fg);border-color:var(--fg2)}
+#vivo .tabs button[aria-selected="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg);font-weight:600}
+@media (min-width:720px) and (max-width:1099px){#vivo .tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media (max-width:480px){#vivo .tabs button{font-size:12.5px;padding:7px 4px;white-space:normal}}
+#vivo .strip{display:grid;grid-auto-flow:column;grid-auto-columns:168px;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;height:178px;align-items:stretch}
+#vivo .strip>p{align-self:center}
+#vivo .q{border:1px solid var(--rule);border-radius:10px;padding:9px 11px;background:var(--bg);display:grid;grid-template-rows:auto auto auto 30px auto auto;align-content:start;gap:2px;font-size:12.5px;min-width:0;overflow:hidden}
+#vivo .q.tot{grid-template-rows:auto auto auto auto auto auto}
+#vivo .q>small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #vivo .q .t{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
 #vivo .q b{font-size:14px}
 #vivo .q .vk{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
@@ -534,9 +540,10 @@ VIVO_CSS = """<style>
 #vivo svg{width:100%;height:30px;display:block}
 #vivo small{color:var(--muted)}
 #vivo .q.tot{border-color:var(--fg2)}
-#vivo form.vlock{display:grid;gap:6px;align-content:start;border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:12.5px;min-width:0;grid-column:span 2}
+#vivo form.vlock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-content:center;border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:12.5px;min-width:0;grid-column:span 2;width:min(352px,100%)}
+#vivo form.vlock>b,#vivo form.vlock>small,#vivo form.vlock>label{grid-column:1/-1}
 #vivo form.vlock input[type=password]{font:inherit;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--fg)}
-#vivo form.vlock button{font:inherit;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;justify-self:start}
+#vivo form.vlock button{font:inherit;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
 #vivo form.vlock label{display:flex;gap:6px;align-items:center;color:var(--fg2)}
 #vivo form.vlock .err{color:var(--down)}
 @media (min-width:1100px){
@@ -544,7 +551,7 @@ VIVO_CSS = """<style>
   .wrap:has(#vivo:not([hidden]))>*{grid-column:1/-1}
   .wrap:has(#vivo:not([hidden]))>header{grid-column:1;align-self:center}
   .wrap:has(#vivo:not([hidden]))>#vivo{grid-column:2;align-self:start;padding:14px 16px}
-  #vivo .strip{grid-auto-columns:176px}
+  #vivo .strip{grid-auto-columns:172px}
 }
 header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #informe .cand p:not(.pq){text-align:left}
@@ -572,7 +579,7 @@ VIVO_JS = r"""<script>
   try { const g = sessionStorage.getItem("cartera_pw"); if (g) desbloquear(g, true); } catch (e) {}
   function tarjetaMia(){
     if (!MIA) return `<form class="vlock"><b>Tus acciones</b><small>Escribe la frase de «Mi cartera» para ver cómo van hoy. Se descifra solo en tu navegador.</small>` +
-      `<input type="password" placeholder="Frase secreta" aria-label="Frase secreta" autocomplete="current-password"><label><input type="checkbox"> Recordar en esta ventana</label><button type="submit">Ver</button><small class="err"></small></form>`;
+      `<input type="password" placeholder="Frase secreta" aria-label="Frase secreta" autocomplete="current-password"><button type="submit">Ver</button><label><input type="checkbox"> Recordar en esta ventana</label><small class="err"></small></form>`;
     const P = MIA.filter(p => Q.q[p.tk]).map(p => { const q = Q.q[p.tk]; return {...p, q, c: chg(q), val: q[0] * p.cant, dia: q[1] ? (q[0] - q[1]) * p.cant : 0}; });
     const val = P.reduce((s, p) => s + p.val, 0), dia = P.reduce((s, p) => s + p.dia, 0), cost = P.reduce((s, p) => s + p.total, 0);
     const $ = v => (v < 0 ? "−$" : "$") + nf(Math.abs(Math.round(v)), 0);
@@ -640,7 +647,7 @@ VIVO_JS = r"""<script>
     }).join("") : `<p class="sub" style="margin:0">Ninguna en este momento.</p>`;
   }
   box.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
-    tab = b.dataset.k; box.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b)); pinta();
+    tab = b.dataset.k; box.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b)); pinta(); box.querySelector(".strip").scrollLeft = 0;
   });
   async function carga(){
     try {
@@ -658,7 +665,7 @@ def vivo_html(rows, ok):
     """Panel con precios del día (lee precios.json en el navegador). rows: todas las filas de la página; ok: su ranking."""
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
     meta = [[r["tk"], pos.get(r["tk"]), round(r["_T"], 1), (round(r["_tend"], 4) if r.get("_tend") else None), 1 if r["_mv"] < 1e8 else 0] for r in rows]
-    tabs = [("cand", "Candidatas ahora"), ("top", "Top del ranking"), ("mia", "Mi cartera"), ("alzas", "Mayores alzas"), ("bajas", "Mayores bajas"), ("mont", "Más transadas")]
+    tabs = [("cand", "Candidatas"), ("top", "Top ranking"), ("mia", "Mi cartera"), ("alzas", "Más suben"), ("bajas", "Más bajan"), ("mont", "Más transadas")]
     return ("<!--VIVO-->" + VIVO_CSS +
             f"<section id=\"vivo\" hidden data-meta='{esc(json.dumps(meta, ensure_ascii=False))}'>"
             '<div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div>'
@@ -666,7 +673,7 @@ def vivo_html(rows, ok):
             '<div class="strip"></div>'
             "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
             "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
-            "“Candidatas ahora” aplica la misma regla y el mismo orden de compra del informe con ese precio. "
+            "“Candidatas” aplica la misma regla y el mismo orden de compra del informe con ese precio. "
             "“Mi cartera” muestra tus acciones (pide la frase de esa pestaña; tus datos siguen cifrados).</small>"
             "</section>" + VIVO_JS + "<!--/VIVO-->")
 

@@ -139,11 +139,17 @@ th.why-h{text-align:left!important;cursor:default}
 #vivo .dot.on{background:var(--up);animation:vpulse 2s infinite}
 @keyframes vpulse{50%{opacity:.35}}
 #vivo .idx{font-family:var(--mono);font-size:13px;color:var(--fg)}
-#vivo .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--rule)}
-#vivo .tabs button{font:inherit;font-size:13px;background:none;border:0;border-bottom:2px solid transparent;padding:6px 8px;color:var(--fg2);cursor:pointer;margin-bottom:-1px;white-space:nowrap}
-#vivo .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--fit);font-weight:600}
-#vivo .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(168px,1fr);gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
-#vivo .q{border:1px solid var(--rule);border-radius:10px;padding:9px 11px;background:var(--bg);display:grid;gap:2px;font-size:12.5px;min-width:0}
+#vivo .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#vivo .tabs button{font:inherit;font-size:13px;line-height:1.2;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:8px 6px;color:var(--fg2);cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#vivo .tabs button:hover{color:var(--fg);border-color:var(--fg2)}
+#vivo .tabs button[aria-selected="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg);font-weight:600}
+@media (min-width:720px) and (max-width:1099px){#vivo .tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media (max-width:480px){#vivo .tabs button{font-size:12.5px;padding:7px 4px;white-space:normal}}
+#vivo .strip{display:grid;grid-auto-flow:column;grid-auto-columns:168px;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;height:178px;align-items:stretch}
+#vivo .strip>p{align-self:center}
+#vivo .q{border:1px solid var(--rule);border-radius:10px;padding:9px 11px;background:var(--bg);display:grid;grid-template-rows:auto auto auto 30px auto auto;align-content:start;gap:2px;font-size:12.5px;min-width:0;overflow:hidden}
+#vivo .q.tot{grid-template-rows:auto auto auto auto auto auto}
+#vivo .q>small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #vivo .q .t{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
 #vivo .q b{font-size:14px}
 #vivo .q .vk{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
@@ -154,9 +160,10 @@ th.why-h{text-align:left!important;cursor:default}
 #vivo svg{width:100%;height:30px;display:block}
 #vivo small{color:var(--muted)}
 #vivo .q.tot{border-color:var(--fg2)}
-#vivo form.vlock{display:grid;gap:6px;align-content:start;border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:12.5px;min-width:0;grid-column:span 2}
+#vivo form.vlock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-content:center;border:1px dashed var(--rule);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:12.5px;min-width:0;grid-column:span 2;width:min(352px,100%)}
+#vivo form.vlock>b,#vivo form.vlock>small,#vivo form.vlock>label{grid-column:1/-1}
 #vivo form.vlock input[type=password]{font:inherit;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--fg)}
-#vivo form.vlock button{font:inherit;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;justify-self:start}
+#vivo form.vlock button{font:inherit;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
 #vivo form.vlock label{display:flex;gap:6px;align-items:center;color:var(--fg2)}
 #vivo form.vlock .err{color:var(--down)}
 @media (min-width:1100px){
@@ -164,11 +171,11 @@ th.why-h{text-align:left!important;cursor:default}
   .wrap:has(#vivo:not([hidden]))>*{grid-column:1/-1}
   .wrap:has(#vivo:not([hidden]))>header{grid-column:1;align-self:center}
   .wrap:has(#vivo:not([hidden]))>#vivo{grid-column:2;align-self:start;padding:14px 16px}
-  #vivo .strip{grid-auto-columns:176px}
+  #vivo .strip{grid-auto-columns:172px}
 }
 header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 #informe .cand p:not(.pq){text-align:left}
-</style><section id="vivo" hidden data-meta='[["ANDINA-B", 1, 84.6, 4951.0684, 0], ["ILC", 2, 78.6, 23479.6264, 0], ["PARAUCO", 3, 77.5, 3779.2248, 0], ["CENCOMALLS", 4, 76.9, 2605.8184, 0], ["MALLPLAZA", 5, 76.0, 3817.9952, 0], ["CHILE", 6, 74.0, 184.8147, 0], ["BSANTANDER", 7, 72.1, 75.094, 0], ["AGUAS-A", 8, 72.1, 403.2559, 0], ["IAM", 9, 71.0, 1126.6131, 0], ["ITAUCL", 10, 68.6, 19425.1162, 0], ["LTM", 11, 68.1, 30.9883, 0], ["FALABELLA", 12, 68.0, 6210.108, 0], ["BCI", 13, 67.4, 58482.455, 0], ["ENELAM", 14, 57.8, 85.4406, 0], ["ENTEL", 15, 55.5, 3687.1858, 0], ["SALFACORP", 16, 54.3, 1349.336, 0], ["ENELCHILE", 17, 42.8, 91.8064, 0], ["QUINENCO", 18, 40.2, 4716.7189, 0], ["RIPLEY", 19, 38.5, 495.8428, 0], ["SQM-B", 20, 32.0, 47439.9063, 0], ["COLBUN", 21, 31.6, 170.7957, 0], ["CENCOSUD", 22, 31.1, 2802.8874, 0], ["SMU", 23, 30.0, 172.5274, 0], ["ECL", 24, 29.4, 1831.813, 0], ["CONCHATORO", 25, 29.0, 946.6631, 0], ["VAPORES", 26, 28.1, 43.7318, 0], ["CCU", 27, 25.1, 5608.0523, 0], ["COPEC", 28, 23.3, 6557.5305, 0], ["CAP", 29, 16.8, 5361.1783, 0], ["CMPC", 30, 15.4, 1287.705, 0], ["PAMPA", 31, 6.5, 7.9157, 0]]'><div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div><div class="tabs" role="tablist"><button role="tab" data-k="cand" aria-selected="true">Candidatas ahora</button><button role="tab" data-k="top" aria-selected="false">Top del ranking</button><button role="tab" data-k="mia" aria-selected="false">Mi cartera</button><button role="tab" data-k="alzas" aria-selected="false">Mayores alzas</button><button role="tab" data-k="bajas" aria-selected="false">Mayores bajas</button><button role="tab" data-k="mont" aria-selected="false">Más transadas</button></div><div class="strip"></div><small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). “vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; “Candidatas ahora” aplica la misma regla y el mismo orden de compra del informe con ese precio. “Mi cartera” muestra tus acciones (pide la frase de esa pestaña; tus datos siguen cifrados).</small></section><script>
+</style><section id="vivo" hidden data-meta='[["ANDINA-B", 1, 84.6, 4951.0684, 0], ["ILC", 2, 78.6, 23479.6264, 0], ["PARAUCO", 3, 77.5, 3779.2248, 0], ["CENCOMALLS", 4, 76.9, 2605.8184, 0], ["MALLPLAZA", 5, 76.0, 3817.9952, 0], ["CHILE", 6, 74.0, 184.8147, 0], ["BSANTANDER", 7, 72.1, 75.094, 0], ["AGUAS-A", 8, 72.1, 403.2559, 0], ["IAM", 9, 71.0, 1126.6131, 0], ["ITAUCL", 10, 68.6, 19425.1162, 0], ["LTM", 11, 68.1, 30.9883, 0], ["FALABELLA", 12, 68.0, 6210.108, 0], ["BCI", 13, 67.4, 58482.455, 0], ["ENELAM", 14, 57.8, 85.4406, 0], ["ENTEL", 15, 55.5, 3687.1858, 0], ["SALFACORP", 16, 54.3, 1349.336, 0], ["ENELCHILE", 17, 42.8, 91.8064, 0], ["QUINENCO", 18, 40.2, 4716.7189, 0], ["RIPLEY", 19, 38.5, 495.8428, 0], ["SQM-B", 20, 32.0, 47439.9063, 0], ["COLBUN", 21, 31.6, 170.7957, 0], ["CENCOSUD", 22, 31.1, 2802.8874, 0], ["SMU", 23, 30.0, 172.5274, 0], ["ECL", 24, 29.4, 1831.813, 0], ["CONCHATORO", 25, 29.0, 946.6631, 0], ["VAPORES", 26, 28.1, 43.7318, 0], ["CCU", 27, 25.1, 5608.0523, 0], ["COPEC", 28, 23.3, 6557.5305, 0], ["CAP", 29, 16.8, 5361.1783, 0], ["CMPC", 30, 15.4, 1287.705, 0], ["PAMPA", 31, 6.5, 7.9157, 0]]'><div class="vh"><h2>Mercado en vivo</h2><div class="st"></div></div><div class="tabs" role="tablist"><button role="tab" data-k="cand" aria-selected="true">Candidatas</button><button role="tab" data-k="top" aria-selected="false">Top ranking</button><button role="tab" data-k="mia" aria-selected="false">Mi cartera</button><button role="tab" data-k="alzas" aria-selected="false">Más suben</button><button role="tab" data-k="bajas" aria-selected="false">Más bajan</button><button role="tab" data-k="mont" aria-selected="false">Más transadas</button></div><div class="strip"></div><small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). “vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; “Candidatas” aplica la misma regla y el mismo orden de compra del informe con ese precio. “Mi cartera” muestra tus acciones (pide la frase de esa pestaña; tus datos siguen cifrados).</small></section><script>
 (function(){
   const box = document.getElementById("vivo"); if (!box) return;
   const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de tendencia]
@@ -190,7 +197,7 @@ header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hy
   try { const g = sessionStorage.getItem("cartera_pw"); if (g) desbloquear(g, true); } catch (e) {}
   function tarjetaMia(){
     if (!MIA) return `<form class="vlock"><b>Tus acciones</b><small>Escribe la frase de «Mi cartera» para ver cómo van hoy. Se descifra solo en tu navegador.</small>` +
-      `<input type="password" placeholder="Frase secreta" aria-label="Frase secreta" autocomplete="current-password"><label><input type="checkbox"> Recordar en esta ventana</label><button type="submit">Ver</button><small class="err"></small></form>`;
+      `<input type="password" placeholder="Frase secreta" aria-label="Frase secreta" autocomplete="current-password"><button type="submit">Ver</button><label><input type="checkbox"> Recordar en esta ventana</label><small class="err"></small></form>`;
     const P = MIA.filter(p => Q.q[p.tk]).map(p => { const q = Q.q[p.tk]; return {...p, q, c: chg(q), val: q[0] * p.cant, dia: q[1] ? (q[0] - q[1]) * p.cant : 0}; });
     const val = P.reduce((s, p) => s + p.val, 0), dia = P.reduce((s, p) => s + p.dia, 0), cost = P.reduce((s, p) => s + p.total, 0);
     const $ = v => (v < 0 ? "−$" : "$") + nf(Math.abs(Math.round(v)), 0);
@@ -258,7 +265,7 @@ header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hy
     }).join("") : `<p class="sub" style="margin:0">Ninguna en este momento.</p>`;
   }
   box.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
-    tab = b.dataset.k; box.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b)); pinta();
+    tab = b.dataset.k; box.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b)); pinta(); box.querySelector(".strip").scrollLeft = 0;
   });
   async function carga(){
     try {
