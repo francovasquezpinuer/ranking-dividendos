@@ -1,19 +1,19 @@
-## Ranking de dividendos — 21 de octubre de 2026 a las 18:45
+## Ranking de dividendos — 22 de octubre de 2026 a las 10:54
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
 | # | Acción | Puntaje | Cambio | Precio vs tendencia | Liquidez |
 |---|---|---|---|---|---|
 | 1 | LIPIGAS | 84,3 | = | +17% (sobre su tendencia) | baja |
-| 2 | ANDINA-B (IPSA) | 83,7 | = | −1% (cerca de su tendencia) | alta |
+| 2 | ANDINA-B (IPSA) | 83,7 | = | −0% (cerca de su tendencia) | alta |
 | 3 | ANDINA-A | 80,4 | = | +1% (cerca de su tendencia) | baja |
-| 4 | ILC (IPSA) | 78,7 | = | +4% (cerca de su tendencia) | media |
+| 4 | ILC (IPSA) | 78,7 | = | +3% (cerca de su tendencia) | media |
 | 5 | ENELGXCH | 77,8 | = | −11% (bajo su tendencia) | baja |
-| 6 | SCHWAGER | 77,6 | = | +57% (muy sobre su tendencia) | baja |
+| 6 | SCHWAGER | 77,5 | = | +57% (muy sobre su tendencia) | baja |
 | 7 | PARAUCO (IPSA) | 77,5 | = | −0% (cerca de su tendencia) | alta |
-| 8 | CENCOMALLS (IPSA) | 76,9 | = | −13% (bajo su tendencia) | media |
-| 9 | MALLPLAZA (IPSA) | 76,0 | = | −6% (bajo su tendencia) | alta |
-| 10 | CHILE (IPSA) | 73,9 | = | +5% (cerca de su tendencia) | alta |
+| 8 | CENCOMALLS (IPSA) | 76,9 | = | −14% (bajo su tendencia) | media |
+| 9 | MALLPLAZA (IPSA) | 76,0 | = | −7% (bajo su tendencia) | alta |
+| 10 | CHILE (IPSA) | 74,0 | = | +5% (cerca de su tendencia) | alta |
 
 **Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):
 1. **ANDINA-B** (83,7 pts, puesto 2). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 3,9% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente).
