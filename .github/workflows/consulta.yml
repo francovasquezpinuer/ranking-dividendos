@@ -1,0 +1,28 @@
+name: consulta
+on: push
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[consulta]')
+    steps:
+      - run: |
+          python3 - <<'P'
+          import json, urllib.request, datetime
+          H={"User-Agent":"Mozilla/5.0"}
+          out=[]
+          for tk in "CHILE,COPEC,SONDA,PARAUCO,ANDINA-B,QUINENCO,VAPORES,MALLPLAZA,AGUAS-A,ENELAM,BSANTANDER,ANTARCHILE,MINERA,SOQUICOM,EMBONOR-B,ENTEL,SMU,ENELCHILE,ENELGXCH,IAM".split(","):
+              try:
+                  u=f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.request.quote(tk+'.SN')}?range=5d&interval=5m"
+                  j=json.load(urllib.request.urlopen(urllib.request.Request(u,headers=H),timeout=20))["chart"]["result"][0]
+                  m=j["meta"]; ts=j["timestamp"]; cl=j["indicators"]["quote"][0]["close"]
+                  days={}
+                  for t,c in zip(ts,cl):
+                      if c is None: continue
+                      d=(datetime.datetime.utcfromtimestamp(t)-datetime.timedelta(hours=3)).strftime("%m-%d")
+                      days[d]=round(c,2)
+                  hora=(datetime.datetime.utcfromtimestamp(m["regularMarketTime"])-datetime.timedelta(hours=3)).strftime("%m-%d %H:%M")
+                  out.append(f"{tk};{m.get('regularMarketPrice')};{hora};{m.get('regularMarketVolume')};"+",".join(f"{d}={c}" for d,c in days.items()))
+              except Exception as e:
+                  out.append(f"{tk};error {e}")
+          for i in range(0,len(out),5): print("::notice::"+" || ".join(out[i:i+5]))
+          P
