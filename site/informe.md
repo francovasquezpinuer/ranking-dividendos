@@ -1,4 +1,4 @@
-## Ranking de dividendos — 28 de octubre de 2026 a las 16:55
+## Ranking de dividendos — 28 de octubre de 2026 a las 18:50
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -9,7 +9,7 @@
 | 3 | ANDINA-A | 81,3 | = | +1% (cerca de su tendencia) | baja |
 | 4 | ILC (IPSA) | 78,9 | = | +1% (cerca de su tendencia) | media |
 | 5 | ENELGXCH | 78,0 | = | −12% (bajo su tendencia) | baja |
-| 6 | SCHWAGER | 77,7 | = | +46% (muy sobre su tendencia) | baja |
+| 6 | SCHWAGER | 77,8 | = | +42% (muy sobre su tendencia) | baja |
 | 7 | PARAUCO (IPSA) | 77,5 | = | −3% (cerca de su tendencia) | alta |
 | 8 | CENCOMALLS (IPSA) | 76,9 | = | −16% (bajo su tendencia) | media |
 | 9 | MALLPLAZA (IPSA) | 76,1 | = | −9% (bajo su tendencia) | alta |
@@ -22,7 +22,7 @@
 4. **ILC** (78,9 pts, puesto 4). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, deuda acotada para su sector, utilidades creciendo; rinde 3,7% en 12 meses. Ojo: rinde menos que su promedio histórico (precio exigente).
 5. **ANDINA-A** (81,3 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,3% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
 
-**Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+16%), SCHWAGER (+46%)
+**Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+16%), SCHWAGER (+42%)
 
 Sin datos nuevos hoy (se mantuvo el dato anterior): ISANPA.
 
