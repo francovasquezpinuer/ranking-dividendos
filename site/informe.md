@@ -1,4 +1,4 @@
-## Ranking de dividendos — 29 de octubre de 2026 a las 14:57
+## Ranking de dividendos — 29 de octubre de 2026 a las 16:56
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -6,8 +6,8 @@
 |---|---|---|---|---|---|
 | 1 | ANDINA-B (IPSA) | 84,8 | = | −5% (cerca de su tendencia) | alta |
 | 2 | LIPIGAS | 84,3 | = | +16% (sobre su tendencia) | baja |
-| 3 | ANDINA-A | 81,3 | = | +1% (cerca de su tendencia) | baja |
-| 4 | ILC (IPSA) | 78,9 | = | +0% (cerca de su tendencia) | media |
+| 3 | ANDINA-A | 81,4 | = | +0% (cerca de su tendencia) | baja |
+| 4 | ILC (IPSA) | 78,9 | = | −1% (cerca de su tendencia) | media |
 | 5 | ENELGXCH | 78,0 | = | −13% (bajo su tendencia) | baja |
 | 6 | SCHWAGER | 77,9 | = | +43% (muy sobre su tendencia) | baja |
 | 7 | PARAUCO (IPSA) | 77,5 | = | −5% (bajo su tendencia) | alta |
@@ -20,7 +20,7 @@
 2. **ENELGXCH** (78,0 pts, puesto 5). Por qué: está 13% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 7,0% en 12 meses. Ojo: utilidades que no crecen, rinde menos que su promedio histórico (precio exigente), se transa poco.
 3. **PARAUCO** (77,5 pts, puesto 7). Por qué: está 5% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,2% en 12 meses. Ojo: ROE bajo, rinde menos que su promedio histórico (precio exigente).
 4. **ILC** (78,9 pts, puesto 4). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, deuda acotada para su sector, utilidades creciendo; rinde 3,7% en 12 meses. Ojo: rinde menos que su promedio histórico (precio exigente).
-5. **ANDINA-A** (81,3 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,3% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
+5. **ANDINA-A** (81,4 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,3% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
 
 **Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+16%), SCHWAGER (+43%)
 
