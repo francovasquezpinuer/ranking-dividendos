@@ -161,7 +161,10 @@ def debt_info(r):
         if de is not None: return {"t": "de", "x": de / 100, "lo": .5, "hi": 1.5, "dir": "down", "lbl": f"Deuda = {nf(de, 0)}% del patrimonio (≤50% máximo, ≥150% cero)"}
         return {"t": "nd", "x": -1, "lo": lo, "hi": hi, "dir": "down", "lbl": "Sin deuda"} if debt == 0 else {"t": "na", "lbl": "Sin dato"}
     if eb <= 0: return {"t": "neg", "lbl": "EBITDA negativo"}
-    x = (debt - cash) / eb
+    if debt is None:  # Yahoo a veces no trae la deuda: se usa deuda/patrimonio si existe
+        if de is not None: return {"t": "de", "x": de / 100, "lo": .5, "hi": 1.5, "dir": "down", "lbl": f"Deuda = {nf(de, 0)}% del patrimonio (≤50% máximo, ≥150% cero)"}
+        return {"t": "na", "lbl": "Sin dato"}
+    x = (debt - (cash or 0)) / eb  # sin dato de caja se usa la deuda bruta (más exigente)
     return {"t": "nd", "x": x, "lo": lo, "hi": hi, "dir": "down", "lbl": f"Deuda neta = {nf(x, 1)} veces el EBITDA (escala {nombre}: ≤{nf(lo, 1)}x máximo, ≥{nf(hi, 1)}x cero)"}
 
 
