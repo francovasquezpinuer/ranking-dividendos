@@ -1,4 +1,4 @@
-## Ranking de dividendos — 2 de noviembre de 2026 a las 16:21
+## Ranking de dividendos — 2 de noviembre de 2026 a las 20:06
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -11,7 +11,7 @@
 | 5 | SCHWAGER | 78,1 | ▲1 | +25% (sobre su tendencia) | baja |
 | 6 | ENELGXCH | 78,1 | ▼1 | −16% (bajo su tendencia) | baja |
 | 7 | PARAUCO (IPSA) | 77,6 | = | −10% (bajo su tendencia) | alta |
-| 8 | CENCOMALLS (IPSA) | 76,7 | = | −17% (bajo su tendencia) | media |
+| 8 | CENCOMALLS (IPSA) | 76,7 | = | −18% (bajo su tendencia) | media |
 | 9 | MALLPLAZA (IPSA) | 76,2 | = | −16% (bajo su tendencia) | alta |
 | 10 | CHILE (IPSA) | 74,3 | = | −1% (cerca de su tendencia) | alta |
 
