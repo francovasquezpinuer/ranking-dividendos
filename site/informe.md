@@ -1,4 +1,4 @@
-## Ranking de dividendos — 2 de noviembre de 2026 a las 20:06
+## Ranking de dividendos — 3 de noviembre de 2026 a las 17:06
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -6,23 +6,23 @@
 |---|---|---|---|---|---|
 | 1 | ANDINA-B (IPSA) | 84,9 | = | −7% (bajo su tendencia) | alta |
 | 2 | LIPIGAS | 84,4 | = | +11% (sobre su tendencia) | baja |
-| 3 | ANDINA-A | 81,4 | = | −2% (cerca de su tendencia) | baja |
-| 4 | ILC (IPSA) | 78,9 | = | −2% (cerca de su tendencia) | media |
-| 5 | SCHWAGER | 78,1 | ▲1 | +25% (sobre su tendencia) | baja |
-| 6 | ENELGXCH | 78,1 | ▼1 | −16% (bajo su tendencia) | baja |
-| 7 | PARAUCO (IPSA) | 77,6 | = | −10% (bajo su tendencia) | alta |
-| 8 | CENCOMALLS (IPSA) | 76,7 | = | −18% (bajo su tendencia) | media |
-| 9 | MALLPLAZA (IPSA) | 76,2 | = | −16% (bajo su tendencia) | alta |
+| 3 | ANDINA-A | 81,2 | = | −0% (cerca de su tendencia) | baja |
+| 4 | ILC (IPSA) | 78,9 | = | −3% (cerca de su tendencia) | media |
+| 5 | SCHWAGER | 78,2 | = | +19% (sobre su tendencia) | baja |
+| 6 | ENELGXCH | 78,1 | = | −16% (bajo su tendencia) | baja |
+| 7 | PARAUCO (IPSA) | 77,6 | = | −12% (bajo su tendencia) | alta |
+| 8 | CENCOMALLS (IPSA) | 76,7 | = | −19% (bajo su tendencia) | media |
+| 9 | MALLPLAZA (IPSA) | 76,2 | = | −15% (bajo su tendencia) | alta |
 | 10 | CHILE (IPSA) | 74,3 | = | −1% (cerca de su tendencia) | alta |
 
 **Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):
 1. **ANDINA-B** (84,9 pts, puesto 1). Por qué: está 7% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 4,9% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente).
-2. **ENELGXCH** (78,1 pts, puesto 6). Por qué: está 16% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 7,1% en 12 meses. Ojo: utilidades que no crecen, rinde menos que su promedio histórico (precio exigente), se transa poco.
-3. **PARAUCO** (77,6 pts, puesto 7). Por qué: está 10% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,3% en 12 meses. Ojo: ROE bajo, rinde menos que su promedio histórico (precio exigente).
+2. **PARAUCO** (77,6 pts, puesto 7). Por qué: está 12% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, utilidades creciendo; rinde 1,3% en 12 meses. Ojo: ROE bajo, rinde menos que su promedio histórico (precio exigente).
+3. **ENELGXCH** (78,1 pts, puesto 6). Por qué: está 16% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 7,1% en 12 meses. Ojo: utilidades que no crecen, rinde menos que su promedio histórico (precio exigente), se transa poco.
 4. **ILC** (78,9 pts, puesto 4). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, deuda acotada para su sector, utilidades creciendo; rinde 3,6% en 12 meses. Ojo: rinde menos que su promedio histórico (precio exigente).
-5. **ANDINA-A** (81,4 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,3% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
+5. **ANDINA-A** (81,2 pts, puesto 3). Por qué: cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio); el precio crece firme, reparte un % sano de sus utilidades, buen rendimiento más crecimiento; rinde 5,2% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente), se transa poco.
 
-**Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+11%), SCHWAGER (+25%)
+**Buenas, pero caras hoy (mejor esperar una baja):** LIPIGAS (+11%), SCHWAGER (+19%)
 
 Sin datos nuevos hoy (se mantuvo el dato anterior): ISANPA.
 
