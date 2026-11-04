@@ -1,4 +1,4 @@
-## Ranking de dividendos — 3 de noviembre de 2026 a las 17:06
+## Ranking de dividendos — 3 de noviembre de 2026 a las 22:21
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
