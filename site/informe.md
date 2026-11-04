@@ -1,4 +1,4 @@
-## Ranking de dividendos — 4 de noviembre de 2026 a las 13:23
+## Ranking de dividendos — 4 de noviembre de 2026 a las 13:33
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -13,7 +13,7 @@
 | 7 | PARAUCO (IPSA) | 77,6 | = | −10% (bajo su tendencia) | alta |
 | 8 | CENCOMALLS (IPSA) | 76,7 | = | −18% (bajo su tendencia) | media |
 | 9 | MALLPLAZA (IPSA) | 76,2 | = | −15% (bajo su tendencia) | alta |
-| 10 | CHILE (IPSA) | 74,3 | = | +0% (cerca de su tendencia) | alta |
+| 10 | CHILE (IPSA) | 74,2 | = | +1% (cerca de su tendencia) | alta |
 
 **Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):
 1. **ANDINA-B** (84,9 pts, puesto 1). Por qué: está 6% bajo su tendencia de 5 años (precio con descuento); el precio crece firme, reparte un % sano de sus utilidades, deuda acotada para su sector; rinde 4,9% en 12 meses. Ojo: la caja no cubre bien el dividendo, rinde menos que su promedio histórico (precio exigente).
