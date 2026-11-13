@@ -218,6 +218,8 @@ def compute(base, fund=None, verif=None):
             k, a, _ = lin(xs, [math.log(y) for y in ys]); g = math.exp(12 * k) - 1; tend = math.exp(a + k * (len(v) - 1))
         else:
             k = a = 0; g = 0; tend = v[-1]
+        rl = pm * (len(v) - 1) + pb  # valor de hoy en la recta del precio (la línea del gráfico de cada ficha)
+        if rl > 0: tend = rl  # el precio "vs. recta" se mide contra esta recta (criterio de compra de Franco)
         d = [float(x) for x in b["dy"]]
         dm, db, dr = lin([1, 2, 3, 4, 5], d); dav = sum(d) / 5
         if dav > 0:
@@ -336,7 +338,7 @@ DEBIL = ["el precio no crece firme", "el dividendo no muestra tendencia clara", 
 
 
 def prioridad(T, dev, mv):
-    """Orden de compra: puntaje + premio por estar bajo su tendencia (hasta +10 pts con 20% de descuento) − 3 si se transa poco."""
+    """Orden de compra: puntaje + premio por estar bajo su recta (hasta +10 pts con 20% de descuento) − 3 si se transa poco."""
     return T + 50 * min(max(-dev, 0), 0.20) - (3 if mv < 1e8 else 0)
 
 
@@ -348,9 +350,10 @@ def razones(r):
     """(por qué comprarla, ojo) a partir de los criterios del puntaje."""
     S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(len(SMAX))]
     pq = []
-    if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su tendencia de 5 años (precio con descuento)")
-    elif r["_dev"] <= 0.05: pq.append("cotiza en línea con su tendencia de 5 años (precio justo, sin sobreprecio)")
-    else: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su tendencia de 5 años ({'cara: mejor esperar una baja' if r['_dev'] > 0.10 else 'algo cara'})")
+    if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su recta de precio de 5 años (precio con descuento)")
+    elif r["_dev"] <= 0: pq.append("cotiza en línea con su recta de precio de 5 años (precio justo, sin sobreprecio)")
+    elif r["_dev"] <= 0.05: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su recta de precio de 5 años (levemente sobre la recta)")
+    else: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su recta de precio de 5 años ({'cara: mejor esperar una baja' if r['_dev'] > 0.10 else 'algo cara'})")
     fuertes = sorted([i for i in list(range(10)) + [11, 12] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
     if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
     pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
@@ -362,10 +365,10 @@ def razones(r):
 
 # ---------------------------------------------------------------- informe
 def tramo(dev):
-    if dev <= -0.05: return "bajo su tendencia"
-    if dev <= 0.10: return "cerca de su tendencia"
-    if dev <= 0.25: return "sobre su tendencia"
-    return "muy sobre su tendencia"
+    if dev <= -0.05: return "bajo su recta"
+    if dev <= 0.10: return "cerca de su recta"
+    if dev <= 0.25: return "sobre su recta"
+    return "muy sobre su recta"
 
 
 def set_dev(ok):
@@ -374,7 +377,7 @@ def set_dev(ok):
 
 def picks(ok):
     top = ok[:12]
-    return [r for r in top if r["_dev"] <= 0.05][:5], [r for r in top if r["_dev"] > 0.10]
+    return [r for r in top if r["_dev"] <= 0][:5], [r for r in top if r["_dev"] > 0.05]
 
 
 def cambio(prev_rank, r, pos):
@@ -392,20 +395,20 @@ def informe(ok, prev_rank, fecha_txt, sin_datos):
     L = [f"## Ranking de dividendos — {fecha_txt}", ""]
     L.append("**Top 10 (modo Crecimiento, con requisito de liquidez)**")
     L.append("")
-    L.append("| # | Acción | Puntaje | Cambio | Precio vs tendencia | Liquidez |")
+    L.append("| # | Acción | Puntaje | Cambio | Precio vs. recta | Liquidez |")
     L.append("|---|---|---|---|---|---|")
     for r in ok[:10]:
         L.append(f"| {r['_rk']} | {r['tk']}{' (IPSA)' if r['ipsa'] else ''} | {nf(r['_T'], 1)} | {cambio(prev_rank, r, r['_rk'])} | {sgn_pct(r['_dev'])} ({tramo(r['_dev'])}) | {tier(r['_mv'])} |")
     L.append("")
-    L.append("**Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años; "
-             "el orden suma al puntaje un premio por estar bajo su tendencia y resta 3 pts si se transa poco):")
+    L.append("**Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años; "
+             "el orden suma al puntaje un premio por estar bajo su recta y resta 3 pts si se transa poco):")
     if cand:
         for i, r in enumerate(ordenar_cand(cand)):
             pq, ojo = razones(r)
             L.append(f"{i + 1}. **{r['tk']}** ({nf(r['_T'], 1)} pts, puesto {r['_rk']}). Por qué: {pq}."
                      + (f" Ojo: {ojo}." if ojo else ""))
     else:
-        L.append("- Ninguna hoy: las mejor rankeadas están sobre su tendencia de precio.")
+        L.append("- Ninguna hoy: las mejor rankeadas están sobre su recta de precio.")
     radar = ordenar_cand([r for r in ok if r["tk"] in RADAR and r not in cand])
     if radar:
         L.append("")
@@ -465,16 +468,16 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
     set_dev(ok)
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
     top = ok[:12]
-    cand = [r for r in top if r["_dev"] <= 0.05][:5]
-    caras = [r for r in top if r["_dev"] > 0.10]
+    cand = [r for r in top if r["_dev"] <= 0][:5]
+    caras = [r for r in top if r["_dev"] > 0.05]
     H = ["<!--INFORME-->", INF_CSS, '<section id="informe">',
          f'<div><h2>{esc(titulo)}</h2><p class="sub">Actualizado el {esc(fecha_txt)} (hora de Chile) · se actualiza solo varias veces al día hábil</p></div>',
-         '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está a no más de 5% sobre su tendencia de 5 años. '
-         'El orden parte del puntaje, suma un premio por estar bajo su tendencia (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
+         '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años. '
+         'El orden parte del puntaje, suma un premio por estar bajo su recta (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
     def tarjeta(r, etiqueta):
         pq, ojo = razones(r)
         return (f'<div class="cand"><span class="ord">{etiqueta}</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
-                f'<p>Precio {sgn_pct(r["_dev"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
+                f'<p>Precio {sgn_pct(r["_dev"])} vs. su recta · rinde {nf(r["yt"] * 100, 1)}%<br>'
                 f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
                 + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "")
                 + (f'<br>Rinde hoy {nf(r["d"][-1] / r["last"] * 100, 1)}% vs. {nf(r["yh"] * 100, 1)}% promedio 2022–25' if r.get("yh") and r["d"][-1] else "") + '</p>'
@@ -483,15 +486,15 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
     if cand:
         H.append('<div class="cands">' + "".join(tarjeta(r, f"{i + 1}ª opción") for i, r in enumerate(ordenar_cand(cand))) + "</div>")
     else:
-        H.append('<p class="sub">Ninguna hoy: las mejor rankeadas están más de 5% sobre su tendencia de precio.</p>')
+        H.append('<p class="sub">Ninguna hoy: las mejor rankeadas están sobre su recta de precio.</p>')
     radar = ordenar_cand([r for r in ok if r["tk"] in RADAR and r not in cand])
     if radar:
-        H.append('<div><b>En tu radar</b><p class="sub">Acciones que sigues aunque hoy no cumplan la regla de candidatas (no están entre las 12 mejores o están más de 5% sobre su tendencia). '
+        H.append('<div><b>En tu radar</b><p class="sub">Acciones que sigues aunque hoy no cumplan la regla de candidatas (no están entre las 12 mejores o están sobre su recta). '
                  'Mismo análisis y mismo orden de compra.</p></div>')
         H.append('<div class="cands radar">' + "".join(tarjeta(r, "En tu radar") for r in radar) + "</div>")
     if caras:
         H.append('<p style="margin:0"><b>Buenas, pero caras hoy (mejor esperar una baja):</b> ' + ", ".join(f"{esc(r['tk'])} ({sgn_pct(r['_dev'])})" for r in caras) + "</p>")
-    H.append('<div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. tendencia</th><th>Liquidez</th></tr></thead><tbody>')
+    H.append('<div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. recta</th><th>Liquidez</th></tr></thead><tbody>')
     for r in ok[:10]:
         ch = cambio(prev_rank, r, pos[r["tk"]])
         cls = "up" if ch.startswith("▲") else "down" if ch.startswith("▼") else ""
@@ -505,7 +508,7 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
         H.append("<p style='margin:0'><b>Cambios en el top 10:</b> " + ("entran " + ", ".join(entran) if entran else "") + ("; " if entran and salen else "") + ("salen " + ", ".join(salen) if salen else "") + "</p>")
     if sin_datos:
         H.append(f"<small>Sin datos nuevos en esta actualización (se mantuvo el dato anterior): {esc(', '.join(sin_datos))}.</small>")
-    H.append("<small>“Precio vs. tendencia” compara el precio de hoy con la curva de crecimiento de los últimos 5 años. "
+    H.append("<small>“Precio vs. recta” compara el precio de hoy con la recta de ajuste del precio mensual de los últimos 5 años (la línea del gráfico de cada ficha). "
              "Es un análisis de datos pasados con tus criterios, no una recomendación de un asesor financiero.</small>")
     H.append("</section><!--/INFORME-->")
     return "".join(H)
@@ -563,7 +566,7 @@ header p,.method div,#informe p,#informe small,#vivo>small{text-align:justify;hy
 VIVO_JS = r"""<script>
 (function(){
   const box = document.getElementById("vivo"); if (!box) return;
-  const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de tendencia]
+  const META = JSON.parse(box.dataset.meta);  // [ticker, puesto, puntaje, valor de la recta]
   const byTk = Object.fromEntries(META.map(m => [m[0], m]));
   let Q = null, tab = "cand", MIA = null;  // MIA: posiciones de «Mi cartera» (se descifran en el navegador con la frase)
   const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -646,7 +649,7 @@ VIVO_JS = r"""<script>
         `<div class="t"><span class="px">$${pxf(q[0])}</span><span class="${c >= 0 ? "up" : "down"}">${pct(c)}</span></div>` +
         spark(q[4], q[1], c >= 0) +
         `<div class="r"><span>Monto</span><span>${mm(q[2])}</span></div>` +
-        (d != null ? `<div class="r"><span>vs. tendencia</span><span class="${d <= 0.05 ? "up" : d > 0.10 ? "down" : ""}">${Math.round(d * 100) === 0 ? "0%" : (d > 0 ? "+" : "−") + Math.abs(Math.round(d * 100)) + "%"}</span></div>` : "") + `</div>`;
+        (d != null ? `<div class="r"><span>vs. recta</span><span class="${d <= 0 ? "up" : d > 0.10 ? "down" : ""}">${Math.round(d * 100) === 0 ? "0%" : (d > 0 ? "+" : "−") + Math.abs(Math.round(d * 100)) + "%"}</span></div>` : "") + `</div>`;
     }).join("") : `<p class="sub" style="margin:0">Ninguna en este momento.</p>`;
   }
   box.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
@@ -675,7 +678,7 @@ def vivo_html(rows, ok):
             '<div class="tabs" role="tablist">' + "".join(f'<button role="tab" data-k="{k}" aria-selected="{"true" if k == "cand" else "false"}">{t}</button>' for k, t in tabs) + "</div>"
             '<div class="strip"></div>'
             "<small>Precios del día desde Yahoo Finance (pueden venir con ~15–30 min de retraso). "
-            "“vs. tendencia” recalcula con el precio de este momento cuánto está sobre o bajo su tendencia de 5 años; "
+            "“vs. recta” recalcula con el precio de este momento cuánto está sobre o bajo su recta de precio de 5 años; "
             "“Candidatas” aplica la misma regla y el mismo orden de compra del informe con ese precio. "
             "“Mi cartera” muestra tus acciones (pide la frase de esa pestaña; tus datos siguen cifrados).</small>"
             "</section>" + VIVO_JS + "<!--/VIVO-->")
