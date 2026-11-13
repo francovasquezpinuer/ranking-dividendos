@@ -235,7 +235,7 @@ def compute(base, fund=None, verif=None):
                  po=None if po is None else round(po, 4), last=last, v=b["c"], d=b["dy"], t=b["t"], s=s, flat=round(flat, 4), liq=flat <= 0.4,
                  yh=None if yh is None else round(yh, 5))
         r["eg"], r["cov"], r["roe"] = fund_metrics(tk, (fund or {}).get(tk), b["fd"], b["sec"], po, ov)
-        r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_k"] = k; r["_ovd"] = ov.get("deuda")
+        r["_sec2"] = sec; r["_mv"] = (b["lq"] or [0, 0])[1]; r["_fd"] = b["fd"]; r["_tend"] = tend; r["_tendx"] = math.exp(a + k * (len(v) - 1)) if min(ys) > 0 else v[-1]; r["_k"] = k; r["_ovd"] = ov.get("deuda")
         r["dx"] = debt_info(r)
         if ov.get("nota"):
             r["vf"] = ov["nota"]
@@ -337,23 +337,26 @@ DEBIL = ["el precio no crece firme", "el dividendo no muestra tendencia clara", 
          "ROE bajo", "la caja no cubre bien el dividendo", "se transa poco", "el negocio enfrenta riesgos a futuro", "rinde menos que su promedio histórico (precio exigente)"]
 
 
-def prioridad(T, dev, mv):
+def prioridad(T, dev, mv, devx=None):
     """Orden de compra: puntaje + premio por estar bajo su recta (hasta +10 pts con 20% de descuento) − 3 si se transa poco."""
-    return T + 50 * min(max(-dev, 0), 0.20) - (3 if mv < 1e8 else 0)
+    d = dev if devx is None else (dev + devx) / 2  # descuento combinado: recta del gráfico y tendencia exponencial
+    return T + 50 * min(max(-d, 0), 0.20) - (3 if mv < 1e8 else 0)
 
 
 def ordenar_cand(cand):
-    return sorted(cand, key=lambda r: -prioridad(r["_T"], r["_dev"], r["_mv"]))
+    return sorted(cand, key=lambda r: -prioridad(r["_T"], r["_dev"], r["_mv"], r.get("_devx")))
 
 
 def razones(r):
     """(por qué comprarla, ojo) a partir de los criterios del puntaje."""
     S = r["_S"]; frac = [S[i] / SMAX[i] for i in range(len(SMAX))]
     pq = []
-    if r["_dev"] <= -0.05: pq.append(f"está {nf(abs(r['_dev']) * 100, 0)}% bajo su recta de precio de 5 años (precio con descuento)")
-    elif r["_dev"] <= 0: pq.append("cotiza en línea con su recta de precio de 5 años (precio justo, sin sobreprecio)")
-    elif r["_dev"] <= 0.05: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su recta de precio de 5 años (levemente sobre la recta)")
-    else: pq.append(f"cotiza {nf(r['_dev'] * 100, 0)}% sobre su recta de precio de 5 años ({'cara: mejor esperar una baja' if r['_dev'] > 0.10 else 'algo cara'})")
+    def vs(x, que):
+        return f"{nf(abs(x) * 100, 0)}% {'bajo' if x < 0 else 'sobre'} su {que}" if abs(x) >= 0.005 else f"en línea con su {que}"
+    dv, dx = r["_dev"], r.get("_devx", r["_dev"])
+    nota = ("precio con descuento" if dv <= -0.05 and dx <= 0 else "precio justo" if dv <= 0 and dx <= 0.05
+            else "levemente cara" if dv <= 0.05 and dx <= 0.10 else "cara: mejor esperar una baja")
+    pq.append(f"cotiza {vs(dv, 'recta de precio de 5 años')} y {vs(dx, 'tendencia exponencial')} ({nota})")
     fuertes = sorted([i for i in list(range(10)) + [11, 12] if frac[i] >= (0.75 if i == 11 else 0.85)], key=lambda i: -SMAX[i])[:3]
     if fuertes: pq.append(", ".join(FUERTE[i] for i in fuertes))
     pq.append(f"rinde {nf(r['yt'] * 100, 1)}% en 12 meses")
@@ -371,13 +374,24 @@ def tramo(dev):
     return "muy sobre su recta"
 
 
+def es_cand(r):
+    """Candidata: precio en o bajo la recta del gráfico y a no más de 5% sobre la tendencia exponencial de 5 años."""
+    return r["_dev"] <= 0 and r["_devx"] <= 0.05
+
+
+def es_cara(r):
+    return r["_dev"] > 0.05 or r["_devx"] > 0.10
+
+
 def set_dev(ok):
-    for r in ok: r["_dev"] = r["last"] / r["_tend"] - 1 if r["_tend"] else 0
+    for r in ok:
+        r["_dev"] = r["last"] / r["_tend"] - 1 if r["_tend"] else 0
+        r["_devx"] = r["last"] / r["_tendx"] - 1 if r.get("_tendx") else r["_dev"]
 
 
 def picks(ok):
     top = ok[:12]
-    return [r for r in top if r["_dev"] <= 0][:5], [r for r in top if r["_dev"] > 0.05]
+    return [r for r in top if es_cand(r)][:5], [r for r in top if es_cara(r)]
 
 
 def cambio(prev_rank, r, pos):
@@ -395,13 +409,13 @@ def informe(ok, prev_rank, fecha_txt, sin_datos):
     L = [f"## Ranking de dividendos — {fecha_txt}", ""]
     L.append("**Top 10 (modo Crecimiento, con requisito de liquidez)**")
     L.append("")
-    L.append("| # | Acción | Puntaje | Cambio | Precio vs. recta | Liquidez |")
-    L.append("|---|---|---|---|---|---|")
+    L.append("| # | Acción | Puntaje | Cambio | Precio vs. recta | vs. tendencia | Liquidez |")
+    L.append("|---|---|---|---|---|---|---|")
     for r in ok[:10]:
-        L.append(f"| {r['_rk']} | {r['tk']}{' (IPSA)' if r['ipsa'] else ''} | {nf(r['_T'], 1)} | {cambio(prev_rank, r, r['_rk'])} | {sgn_pct(r['_dev'])} ({tramo(r['_dev'])}) | {tier(r['_mv'])} |")
+        L.append(f"| {r['_rk']} | {r['tk']}{' (IPSA)' if r['ipsa'] else ''} | {nf(r['_T'], 1)} | {cambio(prev_rank, r, r['_rk'])} | {sgn_pct(r['_dev'])} ({tramo(r['_dev'])}) | {sgn_pct(r['_devx'])} | {tier(r['_mv'])} |")
     L.append("")
-    L.append("**Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años; "
-             "el orden suma al puntaje un premio por estar bajo su recta y resta 3 pts si se transa poco):")
+    L.append("**Candidatas para comprar hoy, en orden de compra** (entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años y a no más de 5% sobre su tendencia exponencial; "
+             "el orden suma al puntaje un premio por el descuento promedio entre la recta y la tendencia y resta 3 pts si se transa poco):")
     if cand:
         for i, r in enumerate(ordenar_cand(cand)):
             pq, ojo = razones(r)
@@ -468,16 +482,16 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
     set_dev(ok)
     pos = {r["tk"]: i + 1 for i, r in enumerate(ok)}
     top = ok[:12]
-    cand = [r for r in top if r["_dev"] <= 0][:5]
-    caras = [r for r in top if r["_dev"] > 0.05]
+    cand = [r for r in top if es_cand(r)][:5]
+    caras = [r for r in top if es_cara(r)]
     H = ["<!--INFORME-->", INF_CSS, '<section id="informe">',
          f'<div><h2>{esc(titulo)}</h2><p class="sub">Actualizado el {esc(fecha_txt)} (hora de Chile) · se actualiza solo varias veces al día hábil</p></div>',
-         '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años. '
-         'El orden parte del puntaje, suma un premio por estar bajo su recta (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
+         '<div><b>Candidatas para comprar hoy, en orden de compra</b><p class="sub">Entre las 12 mejores del ranking, las 5 de mayor puntaje cuyo precio está en o bajo su recta de precio de 5 años y a no más de 5% sobre su tendencia exponencial. '
+         'El orden parte del puntaje, suma un premio por el descuento promedio entre la recta y la tendencia (hasta +10 pts con 20% de descuento) y resta 3 pts si se transa poco.</p></div>']
     def tarjeta(r, etiqueta):
         pq, ojo = razones(r)
         return (f'<div class="cand"><span class="ord">{etiqueta}</span><b>{esc(r["tk"])}</b><span class="pts">{nf(r["_T"], 1)} pts · #{pos[r["tk"]]} del ranking</span>'
-                f'<p>Precio {sgn_pct(r["_dev"])} vs. su recta · rinde {nf(r["yt"] * 100, 1)}%<br>'
+                f'<p>Precio {sgn_pct(r["_dev"])} vs. su recta · {sgn_pct(r["_devx"])} vs. su tendencia · rinde {nf(r["yt"] * 100, 1)}%<br>'
                 f'Payout {"s/d" if r["po"] is None else nf(r["po"] * 100, 0) + "%"} · liquidez {tier(r["_mv"])}'
                 + (f'<br>Perspectivas del negocio: {r["fut"]}/5' if r.get("fut") else "")
                 + (f'<br>Rinde hoy {nf(r["d"][-1] / r["last"] * 100, 1)}% vs. {nf(r["yh"] * 100, 1)}% promedio 2022–25' if r.get("yh") and r["d"][-1] else "") + '</p>'
@@ -494,12 +508,12 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
         H.append('<div class="cands radar">' + "".join(tarjeta(r, "En tu radar") for r in radar) + "</div>")
     if caras:
         H.append('<p style="margin:0"><b>Buenas, pero caras hoy (mejor esperar una baja):</b> ' + ", ".join(f"{esc(r['tk'])} ({sgn_pct(r['_dev'])})" for r in caras) + "</p>")
-    H.append('<div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. recta</th><th>Liquidez</th></tr></thead><tbody>')
+    H.append('<div class="tw"><table><thead><tr><th>#</th><th>Acción</th><th>Puntaje</th><th>Cambio vs. día hábil anterior</th><th>Precio vs. recta</th><th>vs. tendencia</th><th>Liquidez</th></tr></thead><tbody>')
     for r in ok[:10]:
         ch = cambio(prev_rank, r, pos[r["tk"]])
         cls = "up" if ch.startswith("▲") else "down" if ch.startswith("▼") else ""
         H.append(f'<tr><td class="n">{pos[r["tk"]]}</td><td>{esc(r["tk"])}{" <small>IPSA</small>" if r["ipsa"] else ""}</td><td class="n">{nf(r["_T"], 1)}</td>'
-                 f'<td class="{cls}">{ch}</td><td>{sgn_pct(r["_dev"])} <small>{tramo(r["_dev"])}</small></td><td>{tier(r["_mv"])}</td></tr>')
+                 f'<td class="{cls}">{ch}</td><td>{sgn_pct(r["_dev"])} <small>{tramo(r["_dev"])}</small></td><td>{sgn_pct(r["_devx"])}</td><td>{tier(r["_mv"])}</td></tr>')
     H.append("</tbody></table></div>")
     ids = {r["tk"] for r in ok[:10]}
     entran = [r["tk"] for r in ok[:10] if prev_rank.get(r["tk"], 99) > 10]
@@ -508,7 +522,7 @@ def informe_html(ok, prev_rank, fecha_txt, sin_datos, titulo):
         H.append("<p style='margin:0'><b>Cambios en el top 10:</b> " + ("entran " + ", ".join(entran) if entran else "") + ("; " if entran and salen else "") + ("salen " + ", ".join(salen) if salen else "") + "</p>")
     if sin_datos:
         H.append(f"<small>Sin datos nuevos en esta actualización (se mantuvo el dato anterior): {esc(', '.join(sin_datos))}.</small>")
-    H.append("<small>“Precio vs. recta” compara el precio de hoy con la recta de ajuste del precio mensual de los últimos 5 años (la línea del gráfico de cada ficha). "
+    H.append("<small>“Precio vs. recta” compara el precio de hoy con la recta de ajuste del precio mensual de los últimos 5 años (la línea del gráfico de cada ficha); “vs. tendencia”, con la curva exponencial de los mismos 5 años. Las candidatas deben cumplir ambas. "
              "Es un análisis de datos pasados con tus criterios, no una recomendación de un asesor financiero.</small>")
     H.append("</section><!--/INFORME-->")
     return "".join(H)
@@ -769,7 +783,7 @@ def main():
         open(os.path.join(a.out, "ranking-bolsa.html"), "w", encoding="utf-8").write(patch_page(html, out_rows, liq, debt, m0, yrs, ftxt))
         open(os.path.join(a.out, "ranking-ipsa.html"), "w", encoding="utf-8").write(patch_page(hip, ip_rows, liq, debt, m0, yrs, ftxt))
     open(os.path.join(a.out, "informe.md"), "w", encoding="utf-8").write(rep)
-    res = [{"tk": r["tk"], "rk": r["_rk"], "T": round(r["_T"], 1), "S": [round(x, 1) for x in r["_S"]], "dev": round(r["_dev"], 3)} for r in ok]
+    res = [{"tk": r["tk"], "rk": r["_rk"], "T": round(r["_T"], 1), "S": [round(x, 1) for x in r["_S"]], "dev": round(r["_dev"], 3), "devx": round(r["_devx"], 3)} for r in ok]
     json.dump({"fecha": fecha, "ranking": res}, open(os.path.join(a.out, "resumen.json"), "w"), ensure_ascii=False)
     if a.hist:
         hist[hoy] = {r["tk"]: r["_rk"] for r in ok}
