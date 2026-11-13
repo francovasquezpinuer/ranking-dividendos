@@ -1,11 +1,11 @@
-## Ranking de dividendos — 12 de noviembre de 2026 a las 17:49
+## Ranking de dividendos — 12 de noviembre de 2026 a las 22:49
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
 | # | Acción | Puntaje | Cambio | Precio vs tendencia | Liquidez |
 |---|---|---|---|---|---|
 | 1 | ANDINA-B (IPSA) | 84,7 | = | −5% (bajo su tendencia) | alta |
-| 2 | LIPIGAS | 84,4 | = | +10% (cerca de su tendencia) | baja |
+| 2 | LIPIGAS | 84,5 | = | +10% (cerca de su tendencia) | baja |
 | 3 | ANDINA-A | 81,0 | = | +2% (cerca de su tendencia) | baja |
 | 4 | ILC (IPSA) | 79,0 | = | −7% (bajo su tendencia) | media |
 | 5 | ENELGXCH | 78,1 | = | −17% (bajo su tendencia) | baja |
