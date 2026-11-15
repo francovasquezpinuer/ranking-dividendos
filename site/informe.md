@@ -1,4 +1,4 @@
-## Ranking de dividendos — 13 de noviembre de 2026 a las 22:26
+## Ranking de dividendos — 15 de noviembre de 2026 a las 6:45
 
 **Top 10 (modo Crecimiento, con requisito de liquidez)**
 
@@ -8,10 +8,10 @@
 | 2 | LIPIGAS | 84,4 | = | +21% (sobre su recta) | +10% | baja |
 | 3 | ANDINA-A | 81,0 | = | +8% (cerca de su recta) | +1% | baja |
 | 4 | ILC (IPSA) | 79,0 | = | +13% (sobre su recta) | −5% | media |
-| 5 | CENCOMALLS (IPSA) | 78,3 | ▲3 | −10% (bajo su recta) | −15% | media |
-| 6 | ENELGXCH | 78,1 | ▼1 | −2% (cerca de su recta) | −17% | baja |
-| 7 | SCHWAGER | 77,8 | ▼1 | +57% (muy sobre su recta) | +45% | baja |
-| 8 | PARAUCO (IPSA) | 77,6 | ▼1 | +0% (cerca de su recta) | −8% | alta |
+| 5 | CENCOMALLS (IPSA) | 78,3 | = | −10% (bajo su recta) | −15% | media |
+| 6 | ENELGXCH | 78,1 | = | −2% (cerca de su recta) | −17% | baja |
+| 7 | SCHWAGER | 77,8 | = | +57% (muy sobre su recta) | +45% | baja |
+| 8 | PARAUCO (IPSA) | 77,6 | = | +0% (cerca de su recta) | −8% | alta |
 | 9 | MALLPLAZA (IPSA) | 76,2 | = | −8% (bajo su recta) | −16% | alta |
 | 10 | CHILE (IPSA) | 74,1 | = | +7% (cerca de su recta) | +3% | alta |
 
